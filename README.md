@@ -2,8 +2,8 @@
 
 ## Summary
 
-This repository documents the uploading of a bitstream to a [caravel extension
-board](https://github.com/efabless/caravel_board/tree/main/hardware/nucleo/caravel_nucleo)
+This repository documents the uploading of a bitstream to a
+[caravel HAT](https://github.com/efabless/caravel_board/tree/main/hardware/nucleo/caravel_nucleo)
 mounted onto a [Nucleo
 board](https://www.st.com/en/evaluation-tools/nucleo-f746zg.html#overview) as
 far as it is known. All files for doing so are taken from the [forked base
@@ -26,9 +26,8 @@ yet, you first have to generate it using FABulous.
 ## Hardware
 
 The board has to be connected over the ST-LINK USB Micro-B connector  ```CN1```
-to the Nucleo board. Previously it was said that another Micro-USB cable has to
-be connected to the USB Micro-AB connector ```CN13``` (```USB-OTG```), but the
-upload also works with just ```CN1``` connected.
+to the Nucleo board. If you want to check the GPIOs for timing failures, you
+also have to follow [this guide](https://github.com/efabless/caravel_board/tree/main/firmware/mpw2-5/nucleo)
 
 ### PmodVGA wiring
 
@@ -62,3 +61,5 @@ seconds before the demo is shown correctly, though this is not always the case.
 ## Resources
 
 - [GPIO diagnostic](https://github.com/efabless/caravel_board/tree/main/firmware/mpw2-5/nucleo)
+- [FABulous](https://github.com/FPGA-Research-Manchester/FABulous)
+- [Caravel HAT](https://github.com/efabless/caravel_board/tree/main/hardware/nucleo/caravel_nucleo)
