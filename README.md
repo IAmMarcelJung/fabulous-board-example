@@ -18,7 +18,7 @@ upload the bitstream, but only this one is currently known. If you find other
 
 ## Prerequisites
 
-The upload process is based on a script calling on micropython modules, so you
+The upload process is based on a script calling micropython modules, so you
 need to install [mpy-cross](https://pypi.org/project/mpy-cross/) and
 [mpremote](https://pypi.org/project/mpremote). If you do not have a bitstream
 yet, you first have to generate it using FABulous.
