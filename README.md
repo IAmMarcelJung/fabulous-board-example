@@ -43,6 +43,7 @@ the demo:
 - IO[23] => G2
 - IO[24] => B2
 - GND => GND
+- 3V3 => 3V3
 
 ## Uploading a bitstream
 
