@@ -25,9 +25,10 @@ a bitstream yet, you first have to generate it using FABulous.
 ## Hardware
 
 The board has to be connected over the ST-LINK USB Micro-B connector  ```CN1```
-to the Nucleo board. If you want to check the GPIOs for timing failures, you
-also have to connect to ```CN13``` and follow
-[this guide](https://github.com/efabless/caravel_board/tree/main/firmware/mpw2-5/nucleo)
+and the OTG connector ```CN13``` to the Nucleo board. If you want to check the
+GPIOs for timing failures, you can follow
+[this guide](https://github.com/efabless/caravel_board/tree/main/firmware/mpw2-5/nucleo).
+This is mandatory if the board has never been checked for timing failures.
 
 ### PmodVGA wiring
 
