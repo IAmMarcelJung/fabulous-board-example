@@ -4,7 +4,6 @@ import time
 
 from machine import Pin, soft_reset
 from modules.board import Board
-from modules.myspi import SPI
 
 def load_image_data(board):
     for _ in range(5):
