@@ -117,13 +117,14 @@ class Board:
         for i in range(1000):
             self.fpga_rst.value(1 if i < 10 else 0)
             self.fpga_clk.value(0)
+            time.sleep(0.005)
             self.fpga_clk.value(1)
             b = 0
             for k, p in enumerate(fpga_data):
                 if p.value():
                     b |= (1 << k)
             print("data: {:023b}".format(b))
-            time.sleep(0.01)
+            time.sleep(0.005)
 
     def set_slow_clock(self):
         self.fpga_clksel0(0)
