@@ -30,8 +30,7 @@ def run():
     board.load_bitstream()
 
     # use slow clock for running
-    fpga_clksel0.value(0)
-    fpga_clksel1.value(0)
+    board.set_slow_clock()
 
     board.print_fpga_data()
 
