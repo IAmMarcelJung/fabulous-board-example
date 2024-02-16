@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import time
 
-from modules.myspi import SPI, CARAVEL_STREAM_READ, CARAVEL_REG_READ, CARAVEL_REG_WRITE 
+from modules.myspi import SPI, CARAVEL_STREAM_READ, CARAVEL_REG_READ, CARAVEL_REG_WRITE
 from nucleo_api import ProgSupply
 from machine import Pin
 
@@ -13,11 +13,11 @@ class Board:
         fpga_clksel1,
         fpga_sclk,
         fpga_sdata,
-        fpga_rx,
-        fpga_rxled,
         fpga_rst,
-        fpga_wclk,
-        fpga_wdata):
+        fpga_rx=None,
+        fpga_rxled=None,
+        fpga_wclk=None,
+        fpga_wdata=None):
         self.fpga_clk = fpga_clk
         self.fpga_clksel0 = fpga_clksel0
         self.fpga_clksel1 = fpga_clksel1
@@ -41,7 +41,7 @@ class Board:
         print('Writing ' + str(Pval) + ' to potentiometer.')
         supply.write_1v8(Pval)
         time.sleep(1)
-         
+
     def startup_sequence(self):
         print("Powering up...")
         # in some cases, you may need to comment or uncomment this line
@@ -88,6 +88,51 @@ class Board:
                 #last_rxled = self._tog_clk(last_rxled)
             if (i % 100) == 0:
                 print("{}".format(i))
+
+    def load_image_data(self, image):
+        for _ in range(5):
+            self.fpga_rst.value(1)
+            time.sleep(0.01)
+            self.fpga_rst.value(0)
+
+            idx = 0
+            wclk = False
+            with open(image, mode='rb') as f:
+                while True:
+                    chunk = f.read(256)
+                    if len(chunk) == 0:
+                        break
+                    for j in range(len(chunk)*8):
+                        byte = chunk[j//8]
+                        self.fpga_wdata.value((byte >> (7-(j % 8)) & 0x1))
+                        wclk = not wclk
+                        self.fpga_wclk.value(wclk)
+                    idx += 1
+                    print("wr {}".format(idx))
+            time.sleep(2)
+
+    def print_fpga_data(self):
+        fpga_data = [Pin('IO_{}'.format(i), mode=Pin.IN) for i in range(15, 38)]
+
+        for i in range(1000):
+            self.fpga_rst.value(1 if i < 10 else 0)
+            self.fpga_clk.value(0)
+            self.fpga_clk.value(1)
+            b = 0
+            for k, p in enumerate(fpga_data):
+                if p.value():
+                    b |= (1 << k)
+            print("data: {:023b}".format(b))
+            time.sleep(0.01)
+
+    def set_slow_clock(self):
+        self.fpga_clksel0(0)
+        self.fpga_clksel1(0)
+
+    def set_fast_clock(self):
+        self.fpga_clksel0(1)
+        self.fpga_clksel1(0)
+
 
     def _tog_clk(self, last_rxled):
         for _ in range(4):
