@@ -22,13 +22,17 @@ but this is not needed for the demo.
 If you do not have
 a bitstream yet, you first have to generate it using FABulous.
 
+The files could also be manually copied with the file explorer or by manually
+mounting the caravel board. If you prefer the latter method, just mount the board
+and remove any occurrences of ```rshell``` in the scripts.
+
 ## Hardware
 
 The board has to be connected over the ST-LINK USB Micro-B connector  ```CN1```
-and the OTG connector ```CN13``` to the Nucleo board. If you want to check the
-GPIOs for timing failures, you can follow
-[this guide](https://github.com/efabless/caravel_board/tree/main/firmware/mpw2-5/nucleo).
-This is mandatory if the board has never been checked for timing failures.
+and the OTG connector ```CN13``` to the Nucleo board. If the GPIOs have not been
+checked for timing failures for the currently used part, you have to follow
+[this guide](https://github.com/efabless/caravel_board/tree/main/firmware/mpw2-5/nucleo)
+first.
 
 ### PmodVGA wiring
 
@@ -49,10 +53,11 @@ the demo:
 ## Uploading a bitstream
 
 First you
-need to set the enironment variables ```FLASH``` and ```DEV```. ```FLASH``` has
+need to set the environment variables ```FLASH``` and ```DEV```. ```FLASH``` has
 to be set to ```/pyboard/flash/```, which is the run directory on the board.
 ```DEV``` is the port on which the board is
-connected (probably ```/dev/ttyACM0```).
+connected (probably ```/dev/ttyACM1```). A way to easily manage the environment
+variables is [direnv](https://github.com/direnv/direnv).
 
 To run the demo, just execute ```run_demo_initial.sh```, if the board has never been
 set up, and ```run.sh``` if the board has already been set up before. It might
