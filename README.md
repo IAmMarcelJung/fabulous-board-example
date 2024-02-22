@@ -36,19 +36,21 @@ first.
 
 ### PmodVGA wiring
 
-In case the PmodVGA ever gets disconnected from the board, here is the wiring for
-the demo:
+In case the PmodVGA ever gets disconnected from the board, here is the wiring
+for the demo:
 
-- IO[15] => HS
-- IO[16] => VS
-- IO[17] => R3
-- IO[18] => G3
-- IO[19] => B3
-- IO[22] => R2
-- IO[23] => G2
-- IO[24] => B2
-- GND => GND
-- 3V3 => 3V3
+| Caravel HAT | PmodVGA |
+|-------------|---------|
+|  IO[15]     |  HS     |
+|  IO[16]     |  VS     |
+|  IO[17]     |  R3     |
+|  IO[18]     |  G3     |
+|  IO[19]     |  B3     |
+|  IO[22]     |  R2     |
+|  IO[23]     |  G2     |
+|  IO[24]     |  B2     |
+|  GND        |  GND    |
+|  3V3        |  3V3    |
 
 ## Uploading a bitstream
 
@@ -68,6 +70,35 @@ If you want to upload your own bitstream, place the bitstream in the ```caravel`
 directory and set the ```DESIGN``` environment variable to your design name (e.g.
 ```sequential_16bit_en```). Also adjust ```caravel.spi``` to your needs.
 Then run ```run.sh```.
+
+## Additional Information
+
+In ```fabric/verilog/eFPGA_v3_top_sky130.v``` the mappings of the caraval HAT
+IO-Pins to the internal pins can be found. However, the pins are shifted by 7
+because the first 7 pins are used internally ```TODO: explain more detailed and
+add reference```.
+Therefore ```io_in[0]``` corresponds to ```IO_7``` in the micropython code and
+so on. A few IOs are already assigned as follows:
+
+| Caravel HAT | Micropython | Function       | Direction (from chip's view) |
+|-------------|-------------|----------------|------------------------------|
+|  IO[7]      |  IO_7       | external clock | IN                           |
+|  IO[8]      |  IO_8       | clock select 0 | IN                           |
+|  IO[9]      |  IO_9       | clock select 1 | IN                           |
+|  IO[10]     |  IO_10      | serial clock   | IN                           |
+|  IO[11]     |  IO_11      | serial data    | IN                           |
+|  IO[12]     |  IO_12      | receive        | IN                           |
+|  IO[13]     |  IO_13      | receive LED    | OUT                          |
+
+### Clock selection
+
+By setting ```IO_8``` and ```IO_9``` the clock used for the fpga can be selected.
+It is also defined in ```fabric/verilog/eFPGA_v3_top_sky130.v``` as follows:
+| IO_8 | IO_9 | clock source |
+|------|------|--------------|
+|  0   |  X   | external     |
+|  1   |  1   | user         |
+|  1   |  1   | wishbone     |
 
 ## Resources
 
