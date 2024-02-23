@@ -12,6 +12,39 @@ There also might be other ways to to
 upload the bitstream, but only this one is currently known. If you find other
 (and simpler) ways, feel free to share them.
 
+## TLDR to run the demo
+
+Install [mpremote](https://pypi.org/project/mpremote),
+[rshell](https://pypi.org/project/rshell/) and
+[mpy-cross](https://pypi.org/project/mpy-cross/).
+
+Connect both USB cables.
+
+Set environment variables:
+
+```console
+export FLASH=pyboard/flash/
+export DEV=/dev/ttyACM1
+```
+
+For board containing all files:
+
+```console
+sh execute_demo.sh
+```
+
+For running after changing the python code (takes longer):
+
+```console
+sh run_demo.sh
+```
+
+For empty board (takes longest):
+
+```console
+sh run_demo_initial.sh
+```
+
 ## Prerequisites
 
 The upload process is based on a script calling micropython modules, so you
@@ -62,7 +95,10 @@ connected (probably ```/dev/ttyACM1```). A way to easily manage the environment
 variables is [direnv](https://github.com/direnv/direnv).
 
 To run the demo, just execute ```run_demo_initial.sh```, if the board has never been
-set up, and ```run.sh``` if the board has already been set up before. It might
+set up, and ```run_demo.sh``` if the board has already been set up before or a
+new firmware was flashed but you made changes to the python code. If the demo
+should just be started on a board conatining all files, you can run
+```execute_demo.sh```. It might
 take a few seconds before the demo is shown correctly even after the script has
 finished, though but this is not always the case.
 
