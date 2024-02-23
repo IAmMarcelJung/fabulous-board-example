@@ -25,9 +25,6 @@ def run():
 
     board.load_bitstream()
 
-    # use slow clock for running
-    board.set_slow_clock()
-
     print("Sleep for five seconds.")
     time.sleep(5)
     board.print_fpga_data()
