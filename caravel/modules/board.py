@@ -93,7 +93,7 @@ class Board:
                 print("{}".format(i))
 
     def load_image_data(self, image):
-        for _ in range(5):
+        for _ in range(2):
             self.fpga_rst.value(1)
             time.sleep(0.01)
             self.fpga_rst.value(0)
@@ -114,10 +114,10 @@ class Board:
                     print("wr {}".format(idx))
             time.sleep(2)
 
-    def print_fpga_data(self):
+    def print_fpga_data(self, n_cycles):
         fpga_data = [Pin("IO_{}".format(i), mode=Pin.IN) for i in range(15, 38)]
 
-        for i in range(1000):
+        for i in range(n_cycles):
             self.fpga_rst.value(1 if i < 10 else 0)
             self.fpga_clk.value(0)
             time.sleep(0.005)
@@ -129,13 +129,17 @@ class Board:
             print("data: {:023b}".format(b))
             time.sleep(0.005)
 
-    def set_slow_clock(self):
+    def set_external_clock(self):
         self.fpga_clksel0(0)
         self.fpga_clksel1(0)
 
-    def set_fast_clock(self):
+    def set_wishbone_clock(self):
         self.fpga_clksel0(1)
         self.fpga_clksel1(0)
+
+    def set_user_clock(self):
+        self.fpga_clksel0(1)
+        self.fpga_clksel1(1)
 
     def _tog_clk(self, last_rxled):
         for _ in range(4):

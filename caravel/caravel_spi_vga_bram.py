@@ -38,12 +38,11 @@ def run():
 
     board.startup_sequence()
 
-    # use fast clock for configuration
-    board.set_fast_clock()
+    # use wishbone clock for configuration
+    board.set_wishbone_clock()
 
     board.load_bitstream()
 
     print("Sleeping for 5 seconds.")
     time.sleep(5)
     board.load_image_data("nya.bin")
-    # board.print_fpga_data()
