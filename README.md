@@ -80,15 +80,17 @@ add reference```.
 Therefore ```io_in[0]``` corresponds to ```IO_7``` in the micropython code and
 so on. A few IOs are already assigned as follows:
 
-| Caravel HAT | Micropython | Function       | Direction (from chip's view) |
-|-------------|-------------|----------------|------------------------------|
-|  IO[7]      |  IO_7       | external clock | IN                           |
-|  IO[8]      |  IO_8       | clock select 0 | IN                           |
-|  IO[9]      |  IO_9       | clock select 1 | IN                           |
-|  IO[10]     |  IO_10      | serial clock   | IN                           |
-|  IO[11]     |  IO_11      | serial data    | IN                           |
-|  IO[12]     |  IO_12      | receive        | IN                           |
-|  IO[13]     |  IO_13      | receive LED    | OUT                          |
+| Caravel HAT | eFPGA     | Micropython | Function       |
+|-------------|----------|-------------|----------------|
+|  IO[7]      | io_in[0] | IO_7        | external clock |
+|  IO[8]      | io_in[1] | IO_8        | clock select 0 |
+|  IO[9]      | io_in[2] | IO_9        | clock select 1 |
+|  IO[10]     | io_in[3] | IO_10       | serial clock   |
+|  IO[11]     | io_in[4] | IO_11       | serial data    |
+|  IO[12]     | io_in[5] | IO_12       | UART RX        |
+|  IO[13]     | io_out[6] | IO_13       | RX LED        |
+
+Pins ```io_in[7]``` and higher can be used in the user design.
 
 ### Clock selection
 
@@ -97,8 +99,8 @@ It is also defined in ```fabric/verilog/eFPGA_v3_top_sky130.v``` as follows:
 | IO_8 | IO_9 | clock source |
 |------|------|--------------|
 |  0   |  X   | external     |
+|  1   |  0   | wishbone     |
 |  1   |  1   | user         |
-|  1   |  1   | wishbone     |
 
 ## Resources
 
