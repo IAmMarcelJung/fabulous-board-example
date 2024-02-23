@@ -23,7 +23,7 @@ Connect both USB cables.
 Set environment variables:
 
 ```console
-export FLASH=pyboard/flash/
+export FLASH=pyboard/flash
 export DEV=/dev/ttyACM1
 ```
 
