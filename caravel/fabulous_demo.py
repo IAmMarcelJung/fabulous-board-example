@@ -28,4 +28,4 @@ def run():
 
     print("Sleeping for 5 seconds.")
     time.sleep(5)
-    board.load_image_data("nya.bin")
+    board.load_image_data("street.bin")
