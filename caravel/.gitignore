@@ -1,3 +1,4 @@
 *.mpy
 flash
 *.bin
+!nya.bin
