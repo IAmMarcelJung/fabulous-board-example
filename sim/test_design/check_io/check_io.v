@@ -1,13 +1,21 @@
 module top(input wire clk, input wire [30:0] io_in, output wire [30:0] io_out, io_oeb);
 	wire rst = io_in[0];
-	reg [15:0] ctr;
+	reg [15:0] out;
 
+    /*
 	always @(posedge clk)
 		if (rst)
 			ctr <= 0;
 		else
 			ctr <= ctr + 1'b1;
+    */
 
-	assign io_out = {13'h123, ctr, rst, 1'b0}; // pass thru reset for debugging
+    always @(posedge clk)
+		if (rst)
+            out <= 0;
+        else
+            out = {22{io_in[1]}};
+
+	assign io_out = out;
 	assign io_oeb = ~(28'b1);
 endmodule
