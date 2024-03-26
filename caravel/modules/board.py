@@ -2,7 +2,7 @@
 import time
 
 from modules.myspi import (
-    SPI,
+    MySPI,
     SPIError,
     CARAVEL_STREAM_READ,
     CARAVEL_REG_READ,
@@ -12,38 +12,58 @@ from modules.myspi import (
     CARAVEL_SPI_REG_PRODUCT_ID,
     CARAVEL_SPI_REG_PRODUCT_ID_DEFAULT_VALUE,
     CARAVEL_SPI_REG_USER_PROJECT_ID,
+    CARAVEL_SPI_REG_USER_PROJECT_ID_DEFAULT_VALUE,
     CARAVEL_SPI_REG_PLL_ENABLE,
     CARAVEL_SPI_REG_PLL_ENABLE_DEFAULT_VALUE,
     CARAVEL_SPI_REG_PLL_BYPASS,
     CARAVEL_SPI_REG_PLL_BYPASS_DEFAULT_VALUE,
+    CARAVEL_SPI_REG_CPU_IRQ,
+    CARAVEL_SPI_REG_CPU_IRQ_DEFAULT_VALUE,
     CARAVEL_SPI_REG_CPU_RESET,
     CARAVEL_SPI_REG_CPU_RESET_DEFAULT_VALUE,
     CARAVEL_SPI_REG_DCO_TRIM_0,
     CARAVEL_SPI_REG_DCO_TRIM_DEFAULT_VALUE,
     CARAVEL_SPI_REG_PLL_FEEDBACK_DIVIDER,
     CARAVEL_SPI_REG_PLL_FEEDBACK_DIVIDER_DEFAULT_VALUE,
+    CARAVEL_SPI_REG_HKSPI_DISABLE,
+    CARAVEL_SPI_REG_HKSPI_DISABLE_DEFAULT_VALUE,
 )
-from nucleo_api import ProgSupply
 from machine import Pin
 
 
 class Board:
-    def __init__(self, fpga_wclk=None, fpga_wdata=None):
-        self.fpga_clk = Pin("IO_7", mode=Pin.OUT, value=0)
-        self.fpga_clksel0 = Pin("IO_8", mode=Pin.OUT, value=0)
-        self.fpga_clksel1 = Pin("IO_9", mode=Pin.OUT, value=0)
-        self.fpga_sclk = Pin("IO_10", mode=Pin.OUT, value=0)
-        self.fpga_sdata = Pin("IO_11", mode=Pin.OUT, value=0)
-        self.fpga_rx = Pin("IO_12", mode=Pin.OUT, value=1)
-        self.fpga_rxled = Pin("IO_13", mode=Pin.IN, pull=0)
-        self.fpga_rst = Pin("IO_14", mode=Pin.OUT, value=0)
+    def __init__(
+        self,
+        fpga_clk="IO_7",
+        fpga_clksel0="IO_8",
+        fpga_clksel1="IO_9",
+        fpga_sclk="IO_10",
+        fpga_sdata="IO_11",
+        fpga_rx="IO_12",
+        fpga_rxled="IO_13",
+        fpga_rst="IO_14",
+        kind="nucleo",
+        fpga_wclk=None,
+        fpga_wdata=None,
+    ):
+        self.fpga_clk = Pin(fpga_clk, mode=Pin.OUT, value=0)
+        self.fpga_clksel0 = Pin(fpga_clksel0, mode=Pin.OUT, value=0)
+        self.fpga_clksel1 = Pin(fpga_clksel1, mode=Pin.OUT, value=0)
+        self.fpga_sclk = Pin(fpga_sclk, mode=Pin.OUT, value=0)
+        self.fpga_sdata = Pin(fpga_sdata, mode=Pin.OUT, value=0)
+        self.fpga_rx = Pin(fpga_rx, mode=Pin.OUT, value=1)
+        self.fpga_rxled = Pin(fpga_rxled, mode=Pin.IN, pull=0)
+        self.fpga_rst = Pin(fpga_rst, mode=Pin.OUT, value=0)
 
         self.fpga_wclk = fpga_wclk
         self.fpga_wdata = fpga_wdata
-        self.slave = SPI()
+        self.kind = kind
+        self.slave = MySPI(self.kind)
 
     @staticmethod
     def set_voltage(voltage):
+        from nucleo_api import ProgSupply
+
         supply = ProgSupply()
         R2 = 360 / ((voltage / 1.25) - 1)
         Rpot = (1 / (1 / R2 - 1 / 5000)) - 500
@@ -54,138 +74,93 @@ class Board:
         supply.write_1v8(Pval)
         time.sleep(1)
 
-    def startup_sequence(self):
+    def startup_sequence(self, print_data=False):
         print("Powering up...")
+        # CPU reset
+        # self.slave.write([CARAVEL_REG_WRITE, CARAVEL_SPI_REG_CPU_RESET, 0x01])
+        # print("Sleeping after CPU reset...")
+        # time.sleep(1)
+        self.slave.write([CARAVEL_REG_WRITE, CARAVEL_SPI_REG_CPU_RESET, 0x00])
+        print("Sleeping after CPU disable reset...")
+        time.sleep(1)
+
+        # HKSPI disable
+        # self.slave.write([CARAVEL_REG_WRITE, CARAVEL_SPI_REG_HKSPI_DISABLE, 0x00])
+
         # in some cases, you may need to comment or uncomment this line
-        self.slave.write([CARAVEL_REG_WRITE, CARAVEL_SPI_REG_CPU_RESET, 0x01])
+        # self.slave.write([CARAVEL_REG_WRITE, CARAVEL_SPI_REG_CPU_RESET, 0x00])
         # ------------
 
-        print("Sleeping after CPU reset")
-        time.sleep(2)
+        if print_data:
+            print(" ")
+            print("Caravel data:")
+            self._read_print_and_check_reg(
+                CARAVEL_SPI_REG_MANUFACTURER_ID,
+                2,
+                "Manufacturer ID",
+                CARAVEL_SPI_REG_MANUFACTURER_ID_DEFAULT_VALUE,
+            )
 
-        print(" ")
-        print("Caravel data:")
-        self._read_print_and_check_reg(
-            CARAVEL_SPI_REG_MANUFACTURER_ID,
-            2,
-            "Manufacturer ID",
-            CARAVEL_SPI_REG_MANUFACTURER_ID_DEFAULT_VALUE,
-        )
-        """
-        mfg = self.slave.exchange(
-            [CARAVEL_STREAM_READ, CARAVEL_SPI_REG_MANUFACTURER_ID], 2
-        )
-        print("   mfg        = {:04x}".format(int.from_bytes(mfg, "big")))
+            self._read_print_and_check_reg(
+                CARAVEL_SPI_REG_PRODUCT_ID,
+                1,
+                "Product ID",
+                CARAVEL_SPI_REG_PRODUCT_ID_DEFAULT_VALUE,
+            )
 
-        self._check_retval(mfg, 0x456)
-        """
-        self._read_print_and_check_reg(
-            CARAVEL_SPI_REG_PRODUCT_ID,
-            1,
-            "Product ID",
-            CARAVEL_SPI_REG_PRODUCT_ID_DEFAULT_VALUE,
-        )
+            self._read_print_and_check_reg(
+                CARAVEL_SPI_REG_USER_PROJECT_ID,
+                4,
+                "User project ID",
+                CARAVEL_SPI_REG_USER_PROJECT_ID_DEFAULT_VALUE,
+            )
 
-        """
-        product = self.slave.exchange(
-            [CARAVEL_REG_READ, CARAVEL_SPI_REG_PRODUCT_ID],
-            1,
-        )
-        print("   product    = {:02x}".format(int.from_bytes(product, "big")))
-        self._check_retval(product, 0x10)
-        """
+            self._read_print_and_check_reg(
+                CARAVEL_SPI_REG_PLL_ENABLE,
+                1,
+                "PLL enable",
+                CARAVEL_SPI_REG_PLL_ENABLE_DEFAULT_VALUE,
+            )
 
-        self._read_print_and_check_reg(
-            CARAVEL_SPI_REG_USER_PROJECT_ID, 4, "User project ID", None
-        )
+            self._read_print_and_check_reg(
+                CARAVEL_SPI_REG_PLL_BYPASS,
+                1,
+                "PLL bypass",
+                CARAVEL_SPI_REG_PLL_BYPASS_DEFAULT_VALUE,
+            )
 
-        """
-        data = self.slave.exchange(
-            [CARAVEL_STREAM_READ, CARAVEL_SPI_REG_USER_PROJECT_ID], 4
-        )
+            self._read_print_and_check_reg(
+                CARAVEL_SPI_REG_CPU_IRQ,
+                1,
+                "CPU_IRQ",
+                CARAVEL_SPI_REG_CPU_IRQ_DEFAULT_VALUE,
+            )
 
-        print("   project ID = {:08x}".format(int.from_bytes(data, "big")))
-        data = int.from_bytes(data, "big")
-        self._check_retval(mfg, 0x10)
-        """
+            self._read_print_and_check_reg(
+                CARAVEL_SPI_REG_CPU_RESET,
+                1,
+                "CPU reset",
+                CARAVEL_SPI_REG_CPU_RESET_DEFAULT_VALUE,
+            )
 
+            self._read_print_and_check_reg(
+                CARAVEL_SPI_REG_DCO_TRIM_0,
+                4,
+                "DCO trim",
+                CARAVEL_SPI_REG_DCO_TRIM_DEFAULT_VALUE,
+            )
+
+            self._read_print_and_check_reg(
+                CARAVEL_SPI_REG_PLL_FEEDBACK_DIVIDER,
+                1,
+                "PLL feedback divider",
+                CARAVEL_SPI_REG_PLL_FEEDBACK_DIVIDER_DEFAULT_VALUE,
+            )
         # disable HKSPI
-        self.slave.write([CARAVEL_REG_WRITE, 0x6F, 0xFF])
 
-        self._read_print_and_check_reg(
-            CARAVEL_SPI_REG_PRODUCT_ID,
-            1,
-            "Product ID",
-            CARAVEL_SPI_REG_PRODUCT_ID_DEFAULT_VALUE,
-        )
+        # self.slave.write([CARAVEL_REG_WRITE, CARAVEL_SPI_REG_HKSPI_DISABLE, 0x00])
 
-        """
-        data = self.slave.exchange(
-            [CARAVEL_REG_READ, CARAVEL_SPI_REG_PRODUCT_ID],
-            1,
-        )
-
-        data = int.from_bytes(data, "big")
-        print(f"   disabled ID = {data}")
-        self._check_retval(data, 0x00)
-        """
-        self._read_print_and_check_reg(
-            CARAVEL_SPI_REG_PLL_ENABLE,
-            1,
-            "PLL enable",
-            CARAVEL_SPI_REG_PLL_ENABLE_DEFAULT_VALUE,
-        )
-
-        """
-        data = self.slave.exchange([CARAVEL_REG_READ, CARAVEL_SPI_REG_PLL_ENABLE], 1)
-        data = int.from_bytes(data, "big")
-        print(f"   PLL enable {data}")
-        self._check_retval(data, 0x02)
-        """
-        self._read_print_and_check_reg(
-            CARAVEL_SPI_REG_PLL_BYPASS,
-            1,
-            "PLL bypass",
-            CARAVEL_SPI_REG_PLL_BYPASS_DEFAULT_VALUE,
-        )
-
-        """
-        data = self.slave.exchange([CARAVEL_REG_READ, CARAVEL_SPI_REG_PLL_BYPASS], 1)
-        data = int.from_bytes(data, "big")
-        print(f"   PLL bypass {data}")
-        self._check_retval(data, 0x01)
-        """
-        self._read_print_and_check_reg(
-            CARAVEL_SPI_REG_DCO_TRIM_0,
-            1,
-            "DCO trim",
-            CARAVEL_SPI_REG_DCO_TRIM_DEFAULT_VALUE,
-        )
-
-        """
-        data = self.slave.exchange([CARAVEL_STREAM_READ, CARAVEL_SPI_REG_DCO_TRIM_0], 1)
-        data = int.from_bytes(data, "big")
-        print(f"   DCO trim {data}")
-        self._check_retval(data, 0x3FFEFFF)
-        """
-
-        self._read_print_and_check_reg(
-            CARAVEL_SPI_REG_PLL_FEEDBACK_DIVIDER,
-            1,
-            "PLL feedback divider",
-            CARAVEL_SPI_REG_PLL_FEEDBACK_DIVIDER_DEFAULT_VALUE,
-        )
-
-        """
-        data = self.slave.exchange(
-            [CARAVEL_REG_READ, CARAVEL_SPI_REG_PLL_FEEDBACK_DIVIDER], 1
-        )
-        data = int.from_bytes(data, "big")
-        print(f"   PLL feedback divider {data} (should be 0x04)")
-        self._check_retval(data, 0x04)
-        """
-
-        self.slave.__init__(enabled=False)
+        self.slave.__init__(self.kind, enabled=False)
 
     def load_bitstream(self):
         # load bitstream, check receive LED
@@ -231,7 +206,10 @@ class Board:
             time.sleep(2)
 
     def print_fpga_data(self, n_cycles):
-        fpga_data = [Pin("IO_{}".format(i), mode=Pin.IN) for i in range(15, 38)]
+        if self.kind == "nucleo":
+            fpga_data = [Pin("IO_{}".format(i), mode=Pin.IN) for i in range(15, 38)]
+        else:
+            fpga_data = [Pin(i, mode=Pin.IN) for i in range(25, 28)]
 
         for i in range(n_cycles):
             self.fpga_rst.value(1 if i < 10 else 0)
@@ -257,6 +235,84 @@ class Board:
         self.fpga_clksel0(1)
         self.fpga_clksel1(1)
 
+    def check_single_output_pin(self, pin, expected):
+        """
+        Check if a single output pin matches the expected value.
+
+        :param pin: The pin to be checked.
+        :param expected: The expected value.
+        """
+        failed = False
+        actual = Pin(f"IO_{pin}", mode=Pin.IN).value()
+        if actual != expected:
+            failed = True
+            print(f"IO_{pin} failed! Expected {expected}, got {actual}.")
+        else:
+            print(f"IO_{pin} succeeded")
+
+        return failed
+
+    def check_output_pins_match_input(self, input_pin, expected):
+        """
+        Check if the output pins have the same value as the input pin.
+        A suitable bitstream is need for this to succeed.
+
+        :param input_pin: The input pin to check the outputs for.
+        :param expected: The value value to set for the input which is expected to be set on the output.
+        """
+        failed = False
+        Pin(f"IO_{input_pin}", mode=Pin.OUT, value=expected)
+        time.sleep(0.01)
+        print(f"Checking for {expected}:")
+        for i in range(15, 38):
+            if i is not input_pin:
+                if self.check_single_output_pin(i, expected):
+                    failed = True
+        return failed
+
+    def check_output_pins_after_reset(self, input_pin):
+        """
+        Check if the output pins have the same value as the input pin.
+        A suitable bitstream is need for this to succeed.
+
+        :param input_pin: The input pin which will be ignored here.
+        """
+        failed = False
+
+        self.fpga_rst.value(1)
+        time.sleep(0.01)
+        print(f"Checking for 0 after reset:")
+        for i in range(15, 38):
+            if i is not input_pin:
+                if self.check_single_output_pin(i, 0):
+                    failed = True
+
+        self.fpga_rst.value(0)
+        time.sleep(0.01)
+        return failed
+
+    def run_check_io(self, input_pin, n_cycles):
+        """
+        Run n cycles of the input/output pin matching. Each cycles checks a high (1)
+        and a low (0) value.
+
+        :param input_pin: The input pin to run the check for.
+        :param n_cycles: The number of cycles to run.
+        """
+
+        failed = False
+        for i in range(n_cycles):
+            print(f"Test run {i}")
+            self.check_output_pins_after_reset(input_pin)
+            self.check_output_pins_match_input(input_pin, 1)
+            self.check_output_pins_match_input(input_pin, 0)
+            self.check_output_pins_match_input(input_pin, 1)
+
+        if failed:
+            print("GPIO test failed.")
+        else:
+            print("GPIO test succeeded.")
+
     def _tog_clk(self, last_rxled):
         for _ in range(4):
             self.fpga_clk.value(0)
@@ -266,10 +322,10 @@ class Board:
                 last_rxled = self.fpga_rxled.value()
         return last_rxled
 
-    def _check_retval(self, retval, expected):
+    def _check_retval(self, retval, expected, reg):
         if retval not in (expected, None):
             raise SPIError(
-                f"Value read from register ({hex(retval)}) did not match the expected value ({hex(expected)})."
+                f"Value read ({hex(retval)}) from register ({reg}) did not match the expected value ({hex(expected)})."
             )
 
     def _read_print_and_check_reg(self, reg, n_bytes, data_name, expected):
@@ -283,5 +339,7 @@ class Board:
         else:
             data = self.slave.exchange([CARAVEL_STREAM_READ, reg], n_bytes)
         data = int.from_bytes(data, "big")
-        print(f"   {data_name} = {data}")
-        # self._check_retval(data, expected)
+        print(f"   {data_name} = {hex(data)}")
+
+        # if reg != CARAVEL_SPI_REG_DCO_TRIM_0:
+        #    self._check_retval(data, expected, data_name)

@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 import time
-from machine import Pin, SoftSPI, sleep
-from nucleo_api import Test
+from machine import Pin, SoftSPI, sleep, SPI
+
+# from nucleo_api import Test
 
 
 CARAVEL_PASSTHRU = 0xC4
@@ -18,9 +19,10 @@ CARAVEL_SPI_REG_MANUFACTURER_ID = 0x01
 CARAVEL_SPI_REG_MANUFACTURER_ID_DEFAULT_VALUE = 0x456
 
 CARAVEL_SPI_REG_PRODUCT_ID = 0x03
-CARAVEL_SPI_REG_PRODUCT_ID_DEFAULT_VALUE = 0x10
+CARAVEL_SPI_REG_PRODUCT_ID_DEFAULT_VALUE = 0x11
 
 CARAVEL_SPI_REG_USER_PROJECT_ID = 0x04
+CARAVEL_SPI_REG_USER_PROJECT_ID_DEFAULT_VALUE = 0x00
 
 CARAVEL_SPI_REG_PLL_ENABLE = 0x08
 CARAVEL_SPI_REG_PLL_ENABLE_DEFAULT_VALUE = 0x02
@@ -50,8 +52,11 @@ CARAVEL_SPI_REG_DCO_TRIM_DEFAULT_VALUE = 0x3FFEFFF
 CARAVEL_SPI_REG_PLL_OUTPUT_DIVIDER = 0x11
 CARAVEL_SPI_REG_PLL_OUTPUT_DIVIDER_DEFAULT_VALUE = 0x12
 
-CARAVEL_SPI_REG_PLL_FEEDBACK_DIVIDER = 0x11
+CARAVEL_SPI_REG_PLL_FEEDBACK_DIVIDER = 0x12
 CARAVEL_SPI_REG_PLL_FEEDBACK_DIVIDER_DEFAULT_VALUE = 0x04
+
+CARAVEL_SPI_REG_HKSPI_DISABLE = 0x6F
+CARAVEL_SPI_REG_HKSPI_DISABLE_DEFAULT_VALUE = 0x00
 
 
 class SPIError(Exception):
@@ -61,31 +66,45 @@ class SPIError(Exception):
         self.message = message
 
 
-class SPI:
-    def __init__(self, enabled=True):
-
+class MySPI:
+    def __init__(self, board="nucleo", enabled=True):
+        cs = "SPI5_CS"
+        if board == "esp":
+            cs = 15
         if enabled:
-            self.cs = Pin("SPI5_CS", mode=Pin.OUT, value=1)
-            self.sck = Pin("SPI5_SCK", mode=Pin.OUT, value=0)
-            self.mosi = Pin("SPI5_MISO", mode=Pin.OUT)  # PF9 = IO[2] = caravel input
-            self.miso = Pin("SPI5_MOSI", mode=Pin.IN)  # PF8 = IO[1] = caravel output
-            self.spi = SoftSPI(
-                baudrate=00000,
-                polarity=0,
-                phase=0,
-                sck=self.sck,
-                mosi=self.mosi,
-                miso=self.miso,
-            )
+            self.cs = Pin(cs, mode=Pin.OUT, value=1)
+            if board == "nucleo":
+                self.sck = Pin("SPI5_SCK", mode=Pin.OUT, value=0)
+                self.mosi = Pin(
+                    "SPI5_MOSI", mode=Pin.OUT
+                )  # PF9 = IO[2] = caravel input
+                self.miso = Pin(
+                    "SPI5_MISO", mode=Pin.IN
+                )  # PF8 = IO[1] = caravel output
+                self.spi = SoftSPI(
+                    baudrate=4000000,
+                    polarity=0,
+                    phase=0,
+                    sck=self.sck,
+                    mosi=self.mosi,
+                    miso=self.miso,
+                )
+            else:
+                self.spi = SPI(
+                    1,
+                    1_000_000,
+                )
+
         else:
-            self.cs = Pin("SPI5_CS", mode=Pin.IN, pull=None)
-            self.sck = Pin("SPI5_SCK", mode=Pin.IN, pull=None)
-            self.mosi = Pin(
-                "SPI5_MISO", mode=Pin.IN, pull=None
-            )  # PF9 = IO[2] = caravel input
-            self.miso = Pin(
-                "SPI5_MOSI", mode=Pin.IN, pull=None
-            )  # PF8 = IO[1] = caravel output
+            if board == "nucleo":
+                self.cs = Pin(cs, mode=Pin.IN, pull=None)
+                self.sck = Pin("SPI5_SCK", mode=Pin.IN, pull=None)
+                self.mosi = Pin(
+                    "SPI5_MISO", mode=Pin.IN, pull=None
+                )  # PF9 = IO[2] = caravel input
+                self.miso = Pin(
+                    "SPI5_MOSI", mode=Pin.IN, pull=None
+                )  # PF8 = IO[1] = caravel output
             self.spi = None
 
     def write(self, buf):

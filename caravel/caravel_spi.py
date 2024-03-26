@@ -2,8 +2,8 @@
 
 import time
 
-from machine import Pin
 from modules.board import Board
+from modules.myspi import SPI
 
 
 def run():
@@ -11,11 +11,11 @@ def run():
 
     board = Board()
 
-    board.startup_sequence()
+    board.startup_sequence(True)
 
     # use external clock for configuration
     board.set_wishbone_clock()
-    board.set_external_clock()
+    # board.set_external_clock()
 
     board.load_bitstream()
 

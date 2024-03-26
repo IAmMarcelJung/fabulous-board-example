@@ -15,8 +15,8 @@ def run():
     fpga_wdata = Pin("IO_21", mode=Pin.OUT, value=0)
 
     board = Board(
-        fpga_wclk,
-        fpga_wdata,
+        fpga_wclk=fpga_wclk,
+        fpga_wdata=fpga_wdata,
     )
 
     board.startup_sequence()
