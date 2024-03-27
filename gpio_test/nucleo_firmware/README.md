@@ -29,14 +29,15 @@ that hosts the Caravel part under test.
      away from the push buttons on Nucleo
    - Be careful not to bend a pin when inserting the breakout board.  If one of
      the pins bends, use needle-nose pliers to re-straighten it.
-    > [!IMPORTANT]
-    > When pressing the Caravel Hat board on the pin headers of the Nucleo, only
-    >  press far enough to engage the pins. If you press to far, you can short
-    >  the Flexy pins under the board against jumpers on the Nucleo.
 
-    > [!NOTE]
-    > You can also use extension headers to make sure there is both good contact
-    > to the Nucleo pins and enough clearance for the Flexy Pins.
+> [!IMPORTANT]
+> When pressing the Caravel Hat board on the pin headers of the Nucleo, only
+> press far enough to engage the pins. If you press to far, you can short
+> the Flexy pins under the board against jumpers on the Nucleo.
+
+> [!NOTE]
+> You can also use extension headers to make sure there is both good contact
+> to the Nucleo pins and enough clearance for the Flexy Pins.
 
 3. Install a Caravel Breakout board into the socket on the Caravel Hat board
      - The Efabless logo should face the USB connector on the Hat
@@ -53,9 +54,7 @@ workstation / laptop.
 
 1. Install the required tools including ```mpremote```, ```mpy-cross``` and
    ```rshell```. The diagnostic runs on a customized Micropython image on the
-   Nucleo board. The Nucleo firmware image, diagnostic software and Makefile
-   targets for installing and running the routines are located in the
-   `firmware_vex/nucleo` directory in the caravel_board repo.
+   Nucleo board.
 
     - ```mpremote``` is used for connecting the Micropython
     - ```mpy-cross``` is a cross compiler for Micropython the compiles a python file
@@ -63,17 +62,11 @@ workstation / laptop.
       reduce the size of the files because the size of the flash on the Nucleo board
       is limited on some models.
 
-2. You will also need to install the **stlink** tools for your client.
+2. You will also need to install the ```stlink``` tools for your client.
 These are required to flash Micropython firmware on the Nucleo board.
-
-- For macOS:
-
-```bash
-      brew install stlink
-```
-
-- For other platforms, see the
-[official instructions](https://github.com/stlink-org/stlink/tree/master).
+See the
+[official instructions](https://github.com/stlink-org/stlink/tree/master) on how
+to install them on your system.
 
 ### FINDING YOUR DEVICE
 
@@ -107,15 +100,25 @@ After the flash completes, check the version of the software:
 ```bash
 make version
 
-io_config -- version 1.2.1
+io_config -- version 1.2.2
 ```
 
+You only have to run this once for the Nucleo board and then  follow the
+inctructions in the next section for every different Caravel chip you
+are testing.
+
 ### RUNNING THE DIAGNOSTIC
+
+> [!NOTE]
+> This was already done for some parts in the University Heidelberg, so if you
+> have access to those parts you can just use these files and don't have to run
+> the diagnostic.
 
 To run the diagnostic, enter the following commands.
 
 The PART variable is an ID for the part you are testing defined by
 you. It will be recorded in the output of the test for future reference.
+Mark the board under test with the part ID you specified for the run.
 
 ```bash
 make run PART=<part id>
@@ -124,10 +127,11 @@ make run PART=<part id>
 
 The test will begin with the green LED on the Nucleo flashing 5 times.
 
-If the test
-completed for the part, run the following to retrieve the configuration file.
-The file will indicated the IO that were successfully configured. Successfully
-configured IO can be used for this part for firmware routines.
+If the test completed for the part, run the following to retrieve the
+configuration file. The file will indicated the IO that were successfully
+checked for either a dependent or independent hold time violation.
+Successfully checked IO can be used for this part for firmware
+routines.
 
 ```bash
 make get_config
@@ -141,7 +145,9 @@ You can also run the test using different voltages, since the hold time is
 affected by the voltage. Set the voltages you want to check in
 ```run_multiple_voltages.sh``` and it will loop through all of them,
 automatically copy ```gpio_config_def.py``` after each run and store the
-results in ```gpio_config_files/<PART>/```.
+results in ```gpio_config_files/<PART>/```. This requires the ```bash``` and by
+default checks for 1.45V, 1.6V and 1.8V.
+
 
 ## Using the Configuration File
 
@@ -173,9 +179,9 @@ Each IO should be set to Management or User mode which defines whether the
 output is driven from the Management or User area.  The IO can be set to output
 or inputs with either pull-down, pull-up or no terminating resistors.
 
-NOTE: You will not be able to configure any IO that is defined as `H_UNKNOWN` in
-your `gpio_config_def.py` file.  We recommend setting these IO (as well as any
-other IO you are not using) to `C_DISABLE` in your `gpio_config_io.py` file.
+> [!NOTE]: You will not be able to configure any IO that is defined as `H_UNKNOWN` in
+> your `gpio_config_def.py` file.  We recommend setting these IO (as well as any
+> other IO you are not using) to `C_DISABLE` in your `gpio_config_io.py` file.
 
 You can check that your IO configuration to ensure that you can achieve the
 desired configuration by running `make check` from the project directory.  If
