@@ -72,7 +72,7 @@ to the Nucleo board.
 
 If the GPIOs have not been checked for timing failures for the currently used
 part, you have to follow [this
-guide](https://github.com/efabless/caravel_board/tree/main/firmware/mpw2-5/nucleo)
+guide](gpio_test/nucleo_firmware/)
 first.
 
 ### PmodVGA wiring
