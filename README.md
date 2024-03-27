@@ -45,7 +45,7 @@ mpremote mount . exec "import fabulous_demo; fabulous_demo.run()"
 
 For an empty board without tested GPIOs and flashed firmware:
 
-Follow [this guide](https://github.com/efabless/caravel_board/tree/main/firmware/mpw2-5/nucleo)
+Follow [this guide](./gpio_test/nucleo_firmware/)
 to check the pins for hold time violations.
 
 ## Prerequisites
@@ -72,7 +72,7 @@ to the Nucleo board.
 
 If the GPIOs have not been checked for timing failures for the currently used
 part, you have to follow [this
-guide](gpio_test/nucleo_firmware/)
+guide](./gpio_test/nucleo_firmware/)
 first.
 
 ### PmodVGA wiring
