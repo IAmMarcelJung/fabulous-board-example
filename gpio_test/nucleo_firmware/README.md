@@ -179,7 +179,8 @@ Each IO should be set to Management or User mode which defines whether the
 output is driven from the Management or User area.  The IO can be set to output
 or inputs with either pull-down, pull-up or no terminating resistors.
 
-> [!NOTE]: You will not be able to configure any IO that is defined as `H_UNKNOWN` in
+> [!NOTE]
+> You will not be able to configure any IO that is defined as `H_UNKNOWN` in
 > your `gpio_config_def.py` file.  We recommend setting these IO (as well as any
 > other IO you are not using) to `C_DISABLE` in your `gpio_config_io.py` file.
 
