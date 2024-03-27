@@ -5,7 +5,10 @@ patterns between GPIO pads on the Caravel SoC.
 
 This manual is taken from
 [the official caravel repo](https://github.com/efabless/caravel_board/tree/main/firmware/mpw2-5/nucleo)
-with slight modifications.
+with slight modifications to fit the directory structure of this repository and to
+simplify some things. This is also tailored more for anyone working with the
+specific FABulous FPGA boards. If you do not have access to those boards you
+might rather use the original instructions.
 
 The diagnostic runs on the STM Nucleo board in combination with the Caravel HAT
 that hosts the Caravel part under test.
@@ -39,16 +42,25 @@ that hosts the Caravel part under test.
 > You can also use extension headers to make sure there is both good contact
 > to the Nucleo pins and enough clearance for the Flexy Pins.
 
-3. Install a Caravel Breakout board into the socket on the Caravel Hat board
-     - The Efabless logo should face the USB connector on the Hat
+3. Install a Caravel Breakout board into the HAT's socket, with the
+    Efabless logo facing the USB connector on the HAT.
 
 4. Connect the USB cable from the connector CN1 on the Nucleo to your
 workstation / laptop.
 
 <div align="left" style="margin-left: 30px; margin-bottom: 30px;">
-    <img src="docs/img/caravel+nucleo_2.jpg" alt="alt text" width="200"/>
-    <img src="docs/img/caravel+nucleo.jpg" alt="alt text" width="445"/>
+    <img
+        src="docs/img/caravel+nucleo_2.jpg"
+        alt="A top down view of the Nucleo
+        board with the HAT and the Caravel daughterboard installed." width="200"
+        title="A top down view of the Nucleo board with the HAT and the Caravel daughterboard installed"./>
+    <img
+        src="docs/img/nucleo_with_extension_headers.jpeg"
+        alt="A side view of the Nucleo
+        board showing the extension headers." width="445"
+        title="A side view of the Nucleo board showing the extension headers."/>
 </div>
+
 
 ### INSTALLATION
 
@@ -247,7 +259,6 @@ For further details and issues, please see the
 
 This is a flowchart that describes the Software.
 
-
 <img src="docs/img/software_flowchart.png" alt="alt text" style="width:200px;"/>
 
 ### Functions used by the software
@@ -256,15 +267,15 @@ The software is done in micropython and ran on the nucleo, some of the useful
 functions that can be used after running `make repl` and importing `io_config`
 are:
 
-* `version` :  displays the version of this code
-* `run_poweron(v)` : powers on caravel board using the nucleo, with voltage v
+- `version` :  displays the version of this code
+- `run_poweron(v)` : powers on Caravel board using the nucleo, with voltage v
   (default is 1.6)
-* `run_change_power(v)` : changes 1v8 power on caravel board using the nucleo
+- `run_change_power(v)` : changes 1v8 power on Caravel board using the nucleo
   with voltage v and without resetting the processor.  This can be used to
   modify the operating power after configuring IO at a different voltage.
-* `run_flash_caravel()` : flashes caravel with firmware.hex on the nucleo
+- `run_flash_caravel()` : flashes Caravel with firmware.hex on the nucleo
   filesystem
-* `run_sanity_check()` : runs the sanity check on an already existing
+- `run_sanity_check()` : runs the sanity check on an already existing
   gpio_config_def file on nucleo filesystem
-* `run(part_name, voltage, analog)` : runs the calibration program, analog is a
+- `run(part_name, voltage, analog)` : runs the calibration program, analog is a
   flag that specifies if the project is analog
