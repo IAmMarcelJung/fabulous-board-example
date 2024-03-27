@@ -43,7 +43,9 @@ that hosts the Caravel part under test.
 > to the Nucleo pins and enough clearance for the Flexy Pins.
 
 3. Install a Caravel Breakout board into the HAT's socket, with the
-    Efabless logo facing the USB connector on the HAT.
+    Efabless logo facing the USB connector on the HAT. If you are using a
+    labeled board at Heidelberg University, the logo is covered by the number
+    label, so the number label should face the USB connector in the HAT.
 
 4. Connect the USB cable from the connector CN1 on the Nucleo to your
 workstation / laptop.
