@@ -1,6 +1,6 @@
 # gpio_config_def.py file for part 5
 # io_config -- version 1.2.2
-voltage = 1.45
+voltage = 1.80
 analog = False
 
 H_NONE        = 0  
@@ -9,16 +9,16 @@ H_INDEPENDENT = 2
 H_SPECIAL     = 3  
 H_UNKNOWN     = 4  
 
-# voltage: 1.45
-# configuration failed in gpio[7], anything after is invalid
+# voltage: 1.8
+# configuration failed in gpio[2], anything after is invalid
 gpio_l = [
 ['IO[0]', H_NONE],
 ['IO[1]', H_INDEPENDENT],
-['IO[2]', H_INDEPENDENT],
-['IO[3]', H_INDEPENDENT],
-['IO[4]', H_INDEPENDENT],
-['IO[5]', H_DEPENDENT],
-['IO[6]', H_INDEPENDENT],
+['IO[2]', H_UNKNOWN],
+['IO[3]', H_UNKNOWN],
+['IO[4]', H_UNKNOWN],
+['IO[5]', H_UNKNOWN],
+['IO[6]', H_UNKNOWN],
 ['IO[7]', H_UNKNOWN],
 ['IO[8]', H_UNKNOWN],
 ['IO[9]', H_UNKNOWN],
@@ -32,7 +32,7 @@ gpio_l = [
 ['IO[17]', H_UNKNOWN],
 ['IO[18]', H_UNKNOWN],
 ]
-# voltage: 1.45
+# voltage: 1.8
 # configuration failed in gpio[34], anything before is invalid
 gpio_h = [
 ['IO[37]', H_NONE],
