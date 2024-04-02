@@ -64,6 +64,8 @@ else
 	sync
 	sleep 2
 	mpremote connect ${DEV} exec "import io_config; io_config.run_flash_caravel()"
+	# firmware will be written into the SPI flash and is not needed on the Nucleo flash anymore
+	mpremote rm :firmware.hex
 endif
 
 # enter repl on nucleo
