@@ -1,3 +1,4 @@
+//#include "../calibration/runtime.h"
 #include "../riscv_firmware_src/defs.h"
 #include "../gpio_config/gpio_config_io.c"
 
@@ -6,7 +7,6 @@
 // --------------------------------------------------------
 
 void set_registers() {
-
     reg_mprj_io_0 = GPIO_MODE_USER_STD_BIDIRECTIONAL;
     reg_mprj_io_1 = GPIO_MODE_USER_STD_BIDIRECTIONAL;
     reg_mprj_io_2 = GPIO_MODE_USER_STD_BIDIRECTIONAL;
@@ -49,43 +49,17 @@ void set_registers() {
 
 }
 
-void main()
-{
+
+int main() {
+    reg_gpio_mode1 = 1;
+    reg_gpio_mode0 = 0;
+    reg_gpio_ien = 1;
+    reg_gpio_oe = 1;
+    reg_gpio_out = 1;
+
     gpio_config_io();
-    /*
-       reg_gpio_mode1 = 1;
-       reg_gpio_mode0 = 0;
-       reg_gpio_ien = 1;
-       reg_gpio_oe = 1;
 
     set_registers();
 
-    reg_mprj_datah = 0;
-    reg_mprj_datal = 0;
-    //gpio_config_io();
-    reg_mprj_xfer = 1;
-    while (reg_mprj_xfer == 1);
-
-    reg_gpio_out = 1; // OFF
-
-
-       while(1) {
-
-       reg_mprj_datal = 0x00000000;
-       reg_mprj_datah = 0x00000000;
-
-       reg_gpio_out = 0x0;
-
-       delay(1000000);
-
-       reg_mprj_datal = 0xffffffff;
-       reg_mprj_datah = 0xffffffff;
-
-       reg_gpio_out = 0x1;
-
-       delay(1000000);
-
-       }
-       */
-
+    reg_gpio_out = 0;
 }
