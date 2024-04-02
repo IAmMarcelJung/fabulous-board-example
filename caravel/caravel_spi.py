@@ -7,7 +7,7 @@ from modules.myspi import SPI
 
 
 def run():
-    Board.set_voltage(1.8)
+    Board.set_voltage(1.6)
 
     board = Board()
 
@@ -19,6 +19,6 @@ def run():
 
     board.load_bitstream()
 
-    print("Sleep for five seconds.")
-    time.sleep(5)
-    board.print_fpga_data(1000)
+    print("Sleep for one second.")
+    time.sleep(1)
+    board.print_fpga_data(100)
