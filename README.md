@@ -3,7 +3,7 @@
 ## Summary
 
 This repository documents how to upload a bitstream to a
-[FABulous](https://github.com/FPGA-Research-Manchester/FABulous)[^1] FPGA
+[FABulous](https://github.com/FPGA-Research-Manchester/FABulous) FPGA[^1]
 mounted on a [caravel
 HAT](https://github.com/efabless/caravel_board/tree/main/hardware/nucleo/caravel_nucleo)[^2]
 mounted onto a [Nucleo
@@ -56,9 +56,8 @@ communication with the Nucleo board.
 To be able to compile your own
 micropython file, also install  [mpy-cross](https://pypi.org/project/mpy-cross/),
 but this is not needed if the board is already prepared for the demo.
-If you do not have a bitstream yet, you first have to generate it using
-```sim/build_test_design.sh```. Unfortunately, since the chip is based on
-FABulous 1.0, you cannot create it using the current version of FABulous.
+If you do not have a bitstream yet, you first have to generate it
+using [FABulous](https://github.com/FPGA-Research-Manchester/FABulous).
 
 ## Hardware
 
