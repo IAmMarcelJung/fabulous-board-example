@@ -2,9 +2,10 @@
 # On installations using `multilib`, this will be `riscv64` even for compiling to 32-bit targets
 TOOLCHAIN_PREFIX=riscv64
 #TOOLCHAIN_PREFIX=riscv32
-INCLUDES=-I$(shell pwd) -I../ -I../generated/ -I../riscv_firmware_src/
+INCLUDES=-I$(shell pwd) -I../ -I../generated/ -I../riscv_firmware_src/ -I../calibration/
 
-VOLTAGE=$(shell python3 -c "from gpio_config_def import voltage; print(voltage)")
+#VOLTAGE=$(shell python3 -c "from gpio_config_def import voltage; print(voltage)")
+VOLTAGE=1.6
 
 .SUFFIXES:
 
@@ -19,7 +20,7 @@ check: gpio_config_def.py gpio_config_io.py gpio_config_data.c
 	python3 ../gpio_config/gpio_config_checker.py
 
 %.elf: %.c ../riscv_firmware_src/sections.lds ../riscv_firmware_src/crt0_vex.S gpio_config_data.c
-	$(TOOLCHAIN_PATH)$(TOOLCHAIN_PREFIX)-unknown-elf-gcc $(INCLUDES) -O0 -mabi=ilp32 -march=rv32i -D__vexriscv__ -Wl,-Bstatic,-T,../riscv_firmware_src/sections.lds,--strip-debug -ffreestanding -nostdlib -o $@ ../riscv_firmware_src/crt0_vex.S ../riscv_firmware_src/isr.c $<
+	$(TOOLCHAIN_PATH)$(TOOLCHAIN_PREFIX)-unknown-elf-gcc $(INCLUDES) -O0 -mabi=ilp32 -march=rv32i -D__vexriscv__ -Wl,-Bstatic,-T,../riscv_firmware_src/sections.lds,--strip-debug -ffreestanding -nostdlib -o $@ ../riscv_firmware_src/crt0_vex.S ../riscv_firmware_src/isr.c  ../calibration/runtime.c $<
 	${TOOLCHAIN_PATH}$(TOOLCHAIN_PREFIX)-unknown-elf-objdump -D $@ > $*.lst
 
 %.hex: %.elf
