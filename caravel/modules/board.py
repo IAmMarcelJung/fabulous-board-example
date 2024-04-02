@@ -80,9 +80,9 @@ class Board:
         # self.slave.write([CARAVEL_REG_WRITE, CARAVEL_SPI_REG_CPU_RESET, 0x01])
         # print("Sleeping after CPU reset...")
         # time.sleep(1)
-        self.slave.write([CARAVEL_REG_WRITE, CARAVEL_SPI_REG_CPU_RESET, 0x00])
-        print("Sleeping after CPU disable reset...")
-        time.sleep(1)
+        # self.slave.write([CARAVEL_REG_WRITE, CARAVEL_SPI_REG_CPU_RESET, 0x00])
+        # print("Sleeping after CPU disable reset...")
+        # time.sleep(1)
 
         # HKSPI disable
         # self.slave.write([CARAVEL_REG_WRITE, CARAVEL_SPI_REG_HKSPI_DISABLE, 0x00])
@@ -162,14 +162,7 @@ class Board:
 
         self.slave.__init__(self.kind, enabled=False)
 
-    def load_bitstream(self):
-        # load bitstream, check receive LED
-        ctrl_word = 0x0000FAB1
-        # make sure we start desynced
-        data = bytes(0xFF for _ in range(128))
-        # last_rxled = self.fpga_rxled.value()
-        with open("counter.bin", mode="rb") as f:
-            data += f.read()
+    def bitbang(self, data, ctrl_word):
         for i, byte in enumerate(data):
             for j in range(8):
                 self.fpga_sdata.value((byte >> (7 - j)) & 0x1)
@@ -182,6 +175,21 @@ class Board:
                 # last_rxled = self._tog_clk(last_rxled)
             if (i % 100) == 0:
                 print("{}".format(i))
+
+    def disable_bitbang(self):
+        ctrl_word = 0x0000FAB0
+        data = bytes(0)
+        self.bitbang(data, ctrl_word)
+
+    def load_bitstream(self):
+        # load bitstream, check receive LED
+        ctrl_word = 0x0000FAB1
+        # make sure we start desynced
+        data = bytes(0xFF for _ in range(128))
+        # last_rxled = self.fpga_rxled.value()
+        with open("counter.bin", mode="rb") as f:
+            data += f.read()
+        self.bitbang(data, ctrl_word)
 
     def load_image_data(self, image):
         for _ in range(2):
