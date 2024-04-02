@@ -60,6 +60,9 @@ module fab_tb;
 `ifdef CREATE_FST
         $dumpfile("fab_tb.fst");
         $dumpvars(0, fab_tb);
+`ifdef CREATE_VCD
+        $dumpfile("fab_tb.vcd");
+        $dumpvars(0, fab_tb);
 `endif
         $readmemh("bitstream.hex", bitstream);
         #100;
