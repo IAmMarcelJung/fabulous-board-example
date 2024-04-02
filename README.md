@@ -58,6 +58,7 @@ micropython file, also install  [mpy-cross](https://pypi.org/project/mpy-cross/)
 but this is not needed if the board is already prepared for the demo.
 If you do not have a bitstream yet, you first have to generate it
 using [FABulous](https://github.com/FPGA-Research-Manchester/FABulous).
+Make sure to use the ```top_wrapper.v``` module in ```user_design```.
 
 ## Hardware
 
