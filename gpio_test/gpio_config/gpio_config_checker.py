@@ -11,11 +11,9 @@ import os, sys, re
 
 sys.path.append(os.getcwd())
 
-from bitstring import Bits, BitArray, BitStream
-from enum import Enum
+from bitstring import BitArray
 from gpio_config_data import config_data_h, config_data_l
 from gpio_config_def import (
-    H_NONE,
     H_DEPENDENT,
     H_INDEPENDENT,
     H_SPECIAL,
