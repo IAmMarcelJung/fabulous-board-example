@@ -13,3 +13,5 @@ test_design/*.vhd
 *.o
 cxxrtl_tb
 *.il
+*.gtkw
+nextpnr_log.txt
