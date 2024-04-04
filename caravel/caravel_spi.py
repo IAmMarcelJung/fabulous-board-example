@@ -11,7 +11,7 @@ def run():
 
     board = Board()
 
-    board.startup_sequence(True)
+    board.startup_sequence()
 
     # use external clock for configuration
     board.set_wishbone_clock()
