@@ -18,7 +18,9 @@ def run():
     # board.set_external_clock()
 
     board.load_bitstream()
+    board.reset_user_logic()
 
     print("Sleep for one second.")
     time.sleep(1)
+    board.reset_user_logic()
     board.print_fpga_data(100)

@@ -231,6 +231,11 @@ class Board:
             print("data: {:023b}".format(b))
             time.sleep(0.005)
 
+    def reset_user_logic(self):
+        self.fpga_rst.value(1)
+        time.sleep(0.01)
+        self.fpga_rst.value(0)
+
     def set_external_clock(self):
         self.fpga_clksel0(0)
         self.fpga_clksel1(0)
