@@ -22,5 +22,4 @@ def run():
 
     print("Sleep for one second.")
     time.sleep(1)
-    board.reset_user_logic()
     board.print_fpga_data(100)
