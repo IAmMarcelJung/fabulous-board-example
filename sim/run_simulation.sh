@@ -2,7 +2,7 @@
 set -ex
 DESIGN=counter
 OUTPUT=../output_files
-BITSTREAM=${OUTPUT}/${DESIGN}.bin
+BITSTREAM=${OUTPUT}/bitstream.bin
 VERILOG=../fabric/verilog
 MAX_BITBYTES=16384
 USER_DESIGN=../user_design/
