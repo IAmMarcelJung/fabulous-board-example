@@ -13,13 +13,14 @@ def run():
 
     board.startup_sequence()
 
-    # use external clock for configuration
+    # use wishbone clock for configuration
     board.set_wishbone_clock()
-    # board.set_external_clock()
 
     board.load_bitstream()
 
-    print("Sleep for five seconds.")
-    time.sleep(5)
+    board.set_external_clock()
+
+    print("Sleep for one second.")
+    time.sleep(1)
     # board.print_fpga_data(100)
-    board.run_check_io(15, 10)
+    board.run_check_io(10)

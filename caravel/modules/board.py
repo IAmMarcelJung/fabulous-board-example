@@ -59,6 +59,7 @@ class Board:
         self.fpga_wdata = fpga_wdata
         self.kind = kind
         self.slave = MySPI(self.kind)
+        self.max_gpio_num = 37
 
     @staticmethod
     def set_voltage(voltage):
@@ -163,16 +164,11 @@ class Board:
         self.slave.__init__(self.kind, enabled=False)
 
     def bitbang(self, data, ctrl_word):
+        self._tog_clk_falling_edge(0.01)
         for i, byte in enumerate(data):
             for j in range(8):
                 self.fpga_sdata.value((byte >> (7 - j)) & 0x1)
-                # last_rxled = self._tog_clk(last_rxled)
-                self.fpga_sclk.value(1)
-                # last_rxled = self._tog_clk(last_rxled)
                 self.fpga_sdata.value((ctrl_word >> (31 - (8 * (i % 4) + j))) & 0x1)
-                # last_rxled = self._tog_clk(last_rxled)
-                self.fpga_sclk.value(0)
-                # last_rxled = self._tog_clk(last_rxled)
             if (i % 100) == 0:
                 print("{}".format(i))
 
@@ -215,12 +211,15 @@ class Board:
 
     def print_fpga_data(self, n_cycles):
         if self.kind == "nucleo":
-            fpga_data = [Pin("IO_{}".format(i), mode=Pin.IN) for i in range(15, 38)]
+            fpga_data = [
+                Pin("IO_{}".format(i), mode=Pin.IN)
+                for i in range(15, self.max_gpio_num + 1)
+            ]
         else:
             fpga_data = [Pin(i, mode=Pin.IN) for i in range(25, 28)]
 
-        for i in range(n_cycles):
-            self.fpga_rst.value(1 if i < 10 else 0)
+        for _ in range(n_cycles):
+            # self.fpga_rst.value(1 if i < 10 else 0)
             self.fpga_clk.value(0)
             time.sleep(0.005)
             self.fpga_clk.value(1)
@@ -260,28 +259,48 @@ class Board:
         if actual != expected:
             failed = True
             print(f"IO_{pin} failed! Expected {expected}, got {actual}.")
-        else:
-            print(f"IO_{pin} succeeded")
+        # else:
+        #    print(f"IO_{pin} succeeded")
 
         return failed
 
-    def check_output_pins_match_input(self, input_pin, expected):
+    def run_test_procedure(self, output, inputs):
         """
-        Check if the output pins have the same value as the input pin.
-        A suitable bitstream is need for this to succeed.
+        Run the following test procedure:
+        set all inputs to 0
+        check output for 0
+        set all inputs to 1
+        check output for 0
+        set each input to 1 in 3 cycles
+        check output for 1
 
-        :param input_pin: The input pin to check the outputs for.
-        :param expected: The value value to set for the input which is expected to be set on the output.
+        :param output: The output pin to be checked.
+        :param inputs: The input pins to change in the procedure."
         """
-        failed = False
-        Pin(f"IO_{input_pin}", mode=Pin.OUT, value=expected)
-        time.sleep(0.01)
-        print(f"Checking for {expected}:")
-        for i in range(15, 38):
-            if i is not input_pin:
-                if self.check_single_output_pin(i, expected):
-                    failed = True
-        return failed
+        succeeded = True
+        if not self.check_test_pattern(output, 0, inputs, [0, 0, 0]):
+            succeeded = False
+        if not self.check_test_pattern(output, 0, inputs, [1, 1, 1]):
+            succeeded = False
+        if not self.check_test_pattern(output, 1, inputs, [1, 0, 0]):
+            succeeded = False
+        if not self.check_test_pattern(output, 1, inputs, [0, 1, 0]):
+            succeeded = False
+        if not self.check_test_pattern(output, 1, inputs, [0, 0, 1]):
+            succeeded = False
+        return succeeded
+
+    def check_test_pattern(self, output, expected, inputs, test_pattern):
+        succeeded = True
+        self._tog_clk(0.1)
+        for i, input in enumerate(inputs):
+            Pin(f"IO_{input}", mode=Pin.IN, value=test_pattern[i])
+        if self.check_single_output_pin(output, expected):
+            print(
+                f"Failed for pattern [{test_pattern[0]}, {test_pattern[1]}, {test_pattern[2]}]."
+            )
+            succeeded = False
+        return succeeded
 
     def check_output_pins_after_reset(self, input_pin):
         """
@@ -295,7 +314,7 @@ class Board:
         self.fpga_rst.value(1)
         time.sleep(0.01)
         print(f"Checking for 0 after reset:")
-        for i in range(15, 38):
+        for i in range(15, self.max_gpio_num + 1):
             if i is not input_pin:
                 if self.check_single_output_pin(i, 0):
                     failed = True
@@ -304,36 +323,44 @@ class Board:
         time.sleep(0.01)
         return failed
 
-    def run_check_io(self, input_pin, n_cycles):
+    def run_check_io(self, n_cycles):
         """
-        Run n cycles of the input/output pin matching. Each cycles checks a high (1)
-        and a low (0) value.
+        Run n cycles of  test procedure.
 
-        :param input_pin: The input pin to run the check for.
         :param n_cycles: The number of cycles to run.
         """
 
         failed = False
-        for i in range(n_cycles):
-            print(f"Test run {i}")
-            self.check_output_pins_after_reset(input_pin)
-            self.check_output_pins_match_input(input_pin, 1)
-            self.check_output_pins_match_input(input_pin, 0)
-            self.check_output_pins_match_input(input_pin, 1)
+        for n in range(n_cycles):
+            print(f"Test run {n}")
+            for output in range(15, self.max_gpio_num + 1):
+                inputs = []
+                for input in range(1, 4):
+                    tmp_input = (output + input) % self.max_gpio_num
+                    inputs.append(tmp_input)
+                if not self.run_test_procedure(output, inputs):
+                    failed = True
 
         if failed:
             print("GPIO test failed.")
         else:
             print("GPIO test succeeded.")
 
-    def _tog_clk(self, last_rxled):
-        for _ in range(4):
-            self.fpga_clk.value(0)
-            self.fpga_clk.value(1)
-            if self.fpga_rxled.value() != last_rxled:
-                print("fpga_rxled: {}".format(self.fpga_rxled.value()))
-                last_rxled = self.fpga_rxled.value()
-        return last_rxled
+    def _tog_clk(self, period):
+        time.sleep(period / 2)
+        self.fpga_clk.value(0)
+        time.sleep(period / 2)
+        self.fpga_clk.value(1)
+
+    def _tog_clk_rising_edge(self, period):
+        self.fpga_clk.value(0)
+        time.sleep(period / 2)
+        self.fpga_clk.value(1)
+
+    def _tog_clk_falling_edge(self, period):
+        self.fpga_clk.value(1)
+        time.sleep(period / 2)
+        self.fpga_clk.value(0)
 
     def _check_retval(self, retval, expected, reg):
         if retval not in (expected, None):

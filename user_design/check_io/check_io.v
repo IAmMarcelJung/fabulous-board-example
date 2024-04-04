@@ -17,5 +17,5 @@ module top(input wire clk, input wire [30:0] io_in, output wire [30:0] io_out, i
             out = {22{io_in[1]}};
 
 	assign io_out = out;
-	assign io_oeb = ~(28'b1);
+	assign io_oeb = 31'b1;
 endmodule
