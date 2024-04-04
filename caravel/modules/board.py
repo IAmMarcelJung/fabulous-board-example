@@ -187,7 +187,7 @@ class Board:
         # make sure we start desynced
         data = bytes(0xFF for _ in range(128))
         # last_rxled = self.fpga_rxled.value()
-        with open("counter.bin", mode="rb") as f:
+        with open("bitstream.bin", mode="rb") as f:
             data += f.read()
         self.bitbang(data, ctrl_word)
 

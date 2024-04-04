@@ -58,13 +58,14 @@ module fab_tb;
     localparam [31:0] ctrl_word = 32'h0000FAB1;
     initial begin
 `ifdef CREATE_FST
-        $dumpfile("fab_tb.fst");
-        $dumpvars(0, fab_tb);
-`ifdef CREATE_VCD
-        $dumpfile("fab_tb.vcd");
+        $dumpfile("../output_files/fab_tb.fst");
         $dumpvars(0, fab_tb);
 `endif
-        $readmemh("bitstream.hex", bitstream);
+`ifdef CREATE_VCD
+        $dumpfile("../output_files/fab_tb.vcd");
+        $dumpvars(0, fab_tb);
+`endif
+        $readmemh("../output_files/bitstream.hex", bitstream);
         #100;
         resetn = 1'b0;
         #10000;
