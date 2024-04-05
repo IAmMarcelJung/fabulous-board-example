@@ -1,7 +1,8 @@
-#include <stdint.h>
-#include <gpio_config_data.c>
 #include "../riscv_firmware_src/defs.h"
 #include "../generated/csr.h"
+#include "../nucleo_firmware/src/send_packet.h"
+#include "gpio_config_io.h"
+#include "gpio_config_data.h"
 
 void delay(const int d)
 {
@@ -18,10 +19,6 @@ void delay(const int d)
    }
 
 }
-
-//#define     WAIT     100000
-#define     WAIT     50000
-//#define     WAIT     20000
 
 void bb_mode()
 {
