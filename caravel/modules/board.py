@@ -165,11 +165,15 @@ class Board:
         self.slave.__init__(self.kind, enabled=False)
 
     def bitbang(self, data, ctrl_word):
-        self._tog_clk_falling_edge(0.01)
+        self._tog_clk_falling_edge()
         for i, byte in enumerate(data):
             for j in range(8):
                 self.fpga_sdata.value((byte >> (7 - j)) & 0x1)
+                self.fpga_sclk.value(1)
+                self._tog_clk_rising_edge()
                 self.fpga_sdata.value((ctrl_word >> (31 - (8 * (i % 4) + j))) & 0x1)
+                self.fpga_sclk.value(0)
+                self._tog_clk_falling_edge()
             if (i % 100) == 0:
                 print("{}".format(i))
 
@@ -350,21 +354,20 @@ class Board:
         else:
             print("GPIO test succeeded.")
 
-    def _tog_clk(self, period):
-        time.sleep(period / 2)
-        self.fpga_clk.value(0)
-        time.sleep(period / 2)
-        self.fpga_clk.value(1)
+    def _tog_clk(self):
+        if self.external_clock:
+            self.fpga_clk.value(0)
+            self.fpga_clk.value(1)
 
-    def _tog_clk_rising_edge(self, period):
-        self.fpga_clk.value(0)
-        time.sleep(period / 2)
-        self.fpga_clk.value(1)
+    def _tog_clk_rising_edge(self):
+        if self.external_clock:
+            self.fpga_clk.value(0)
+            self.fpga_clk.value(1)
 
-    def _tog_clk_falling_edge(self, period):
-        self.fpga_clk.value(1)
-        time.sleep(period / 2)
-        self.fpga_clk.value(0)
+    def _tog_clk_falling_edge(self):
+        if self.external_clock:
+            self.fpga_clk.value(1)
+            self.fpga_clk.value(0)
 
     def _check_retval(self, retval, expected, reg):
         if retval not in (expected, None):
