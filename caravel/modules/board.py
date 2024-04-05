@@ -60,6 +60,7 @@ class Board:
         self.kind = kind
         self.slave = MySPI(self.kind)
         self.max_gpio_num = 37
+        self.external_clock = False
 
     @staticmethod
     def set_voltage(voltage):
@@ -236,14 +237,17 @@ class Board:
         self.fpga_rst.value(0)
 
     def set_external_clock(self):
+        self.external_clock = True
         self.fpga_clksel0(0)
         self.fpga_clksel1(0)
 
     def set_wishbone_clock(self):
+        self.external_clock = False
         self.fpga_clksel0(1)
         self.fpga_clksel1(0)
 
     def set_user_clock(self):
+        self.external_clock = False
         self.fpga_clksel0(1)
         self.fpga_clksel1(1)
 
