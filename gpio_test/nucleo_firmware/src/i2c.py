@@ -1,11 +1,12 @@
 import time
 
+
 class I2C:
 
     def __init__(self, scl, sda):
         self.scl = scl
         self.sda = sda
-        
+
     def _delay(self):
         time.sleep_us(100)
 
@@ -13,7 +14,7 @@ class I2C:
         self.scl.on()
         self.sda.on()
         self._delay()
-        
+
     def start(self):
         self.scl.on()
         self.sda.on()
@@ -22,7 +23,7 @@ class I2C:
         self._delay()
         self.scl.off()
         self._delay()
-        
+
     def stop(self):
         self.sda.off()
         self._delay()
@@ -30,33 +31,33 @@ class I2C:
         self._delay()
         self.sda.on()
         self._delay()
-        
+
     def write_bit(self, b):
-        
-        if (b > 0):
+
+        if b > 0:
             self.sda.on()
         else:
             self.sda.off()
-        
+
         self._delay()
         self.scl.on()
         self._delay()
         self.scl.off()
-        
+
     def read_bit(self):
-        
-        self.sda.on()    
+
+        self.sda.on()
         self._delay()
         self.scl.on()
         self._delay()
-        
+
         if self.sda.value():
             b = 1
         else:
             b = 0
-            
+
         self.scl.off()
-        
+
         return b
 
     def write_byte(self, byte, start=True, stop=True):
@@ -67,7 +68,7 @@ class I2C:
         for x in range(8):
             self.write_bit(byte & 0x80)
             byte = byte << 1
-         
+
         ack = self.read_bit()
 
         if stop:
