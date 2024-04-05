@@ -26,6 +26,4 @@ def run():
 
     board.load_bitstream("bitstream.bin")
 
-    print("Sleeping for 5 seconds.")
-    time.sleep(5)
     board.load_image_data("street.bin")

@@ -193,26 +193,24 @@ class Board:
         self.bitbang(data, ctrl_word)
 
     def load_image_data(self, image):
-        for _ in range(2):
-            self.fpga_rst.value(1)
-            time.sleep(0.01)
-            self.fpga_rst.value(0)
+        self.fpga_rst.value(1)
+        time.sleep(0.01)
+        self.fpga_rst.value(0)
 
-            idx = 0
-            wclk = False
-            with open(image, mode="rb") as f:
-                while True:
-                    chunk = f.read(256)
-                    if len(chunk) == 0:
-                        break
-                    for j in range(len(chunk) * 8):
-                        byte = chunk[j // 8]
-                        self.fpga_wdata.value((byte >> (7 - (j % 8)) & 0x1))
-                        wclk = not wclk
-                        self.fpga_wclk.value(wclk)
-                    idx += 1
-                    print("wr {}".format(idx))
-            time.sleep(2)
+        idx = 0
+        wclk = False
+        with open(image, mode="rb") as f:
+            while True:
+                chunk = f.read(256)
+                if len(chunk) == 0:
+                    break
+                for j in range(len(chunk) * 8):
+                    byte = chunk[j // 8]
+                    self.fpga_wdata.value((byte >> (7 - (j % 8)) & 0x1))
+                    wclk = not wclk
+                    self.fpga_wclk.value(wclk)
+                idx += 1
+                print("wr {}".format(idx))
 
     def print_fpga_data(self, n_cycles):
         if self.kind == "nucleo":
