@@ -24,7 +24,7 @@ def run():
     # use wishbone clock for configuration
     board.set_wishbone_clock()
 
-    board.load_bitstream()
+    board.load_bitstream("bitstream.bin")
 
     print("Sleeping for 5 seconds.")
     time.sleep(5)

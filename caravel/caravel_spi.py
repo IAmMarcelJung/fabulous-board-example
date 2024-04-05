@@ -17,7 +17,8 @@ def run():
     board.set_wishbone_clock()
     # board.set_external_clock()
 
-    board.load_bitstream()
+    board.load_bitstream("bitstream.bin")
+
     board.reset_user_logic()
 
     print("Sleep for one second.")

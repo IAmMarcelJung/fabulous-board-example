@@ -178,13 +178,13 @@ class Board:
         data = bytes(0)
         self.bitbang(data, ctrl_word)
 
-    def load_bitstream(self):
+    def load_bitstream(self, bitstream):
         # load bitstream, check receive LED
         ctrl_word = 0x0000FAB1
         # make sure we start desynced
         data = bytes(0xFF for _ in range(128))
         # last_rxled = self.fpga_rxled.value()
-        with open("bitstream.bin", mode="rb") as f:
+        with open(bitstream, mode="rb") as f:
             data += f.read()
         self.bitbang(data, ctrl_word)
 
