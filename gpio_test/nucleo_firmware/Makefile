@@ -86,7 +86,6 @@ F413ZH:
 copy2 F746ZG-copy: compile check_device
 	$(COPY_CMD) src/flash.mpy src/i2c.mpy src/gpio_config_builder.mpy src/nucleo_api.mpy src/io_config.mpy ${FLASH}
 	$(COPY_CMD) src/main.py ${FLASH}
-	$(COPY_CMD) config_io_o.hex ${FLASH}
 	sync
 	${LS_CMD} ${FLASH}
 	echo "File sytem usage"
@@ -95,7 +94,6 @@ copy2 F746ZG-copy: compile check_device
 copy3 F413ZH-copy: check_device
 	$(COPY_CMD) src/flash.mpy src/i2c.mpy src/gpio_config_builder.mpy src/nucleo_api.mpy src/io_config.mpy ${FLASH}
 	$(COPY_CMD) src/main.py ${FLASH}
-	$(COPY_CMD) config_io_o.hex ${FLASH}
 	sync
 	${LS_CMD}
 	echo "File sytem usage"
@@ -126,29 +124,7 @@ setup: check-python
 	python3 -m pip install mpy-cross
 	python3 -m pip install mpremote
 
-# Set the prefix for `riscvXX-unknown-elf-*`
-# On installations using `multilib`, this will be `riscv64` even for compiling to 32-bit targets
-TOOLCHAIN_PREFIX=riscv64-unknown-elf
-
-SED_CMD=sed -i'.orig' -e
-
-.SUFFIXES:
-
-PATTERN = config_io_o
-
-hex:  ${PATTERN:=.hex}
-
-%.elf: %.c ../sections.lds ../crt0_vex.S
-
-	$(TOOLCHAIN_PATH)$(TOOLCHAIN_PREFIX)-gcc -I../ -I../generated/ -O0 -mabi=ilp32 -march=rv32i_zicsr -D__vexriscv__ -Wl,-Bstatic,-T,../sections.lds,--strip-debug -ffreestanding -nostdlib -o $@ ../crt0_vex.S ../isr.c $<
-	${TOOLCHAIN_PATH}$(TOOLCHAIN_PREFIX)-objdump -s  config_io_o.elf > config_io_o.lst
-
-%.hex: %.elf
-	$(TOOLCHAIN_PATH)$(TOOLCHAIN_PREFIX)-objcopy -O verilog $< $@
-	$(SED_CMD) 's/@10/@00/g' $@
-	$(SED_CMD) '1,/@00/!d' $@
-
 clean:
-	rm -f *.elf config_io_o.hex
+	rm -f *.elf
 
 .PHONY: clean image hex copy repl run
