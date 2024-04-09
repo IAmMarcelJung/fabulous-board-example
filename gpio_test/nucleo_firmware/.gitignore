@@ -1,1 +1,7 @@
 gpio_config_def.py
+*.add
+*.add.spl
+*.hex
+*.hex.orig
+!F413ZH_firmware.hex
+!F746ZG_firmware.hex
