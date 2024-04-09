@@ -1,22 +1,25 @@
 # GPIO test
 
-This directory contains files to check the GPIO configuration for
-hold time violations and flash a custom firmware to to caravel SoC.
+This directory contains files to flash the Nucleo firmware to the Nucleo board,
+check the GPIO configuration for the hold time violation type and flash a custom
+firmware to caravel SoC.
 
-It is taken from the [caravel board repo](https://github.com/efabless/caravel_board/tree/main)
-(commit ```0eb8c4c```)
-with some minor modifications to the strucure and some files.
+It is taken from the [caravel board repository](https://github.com/efabless/caravel_board/tree/main)
+(commit `0eb8c4c`) and has been modified by changing the directory
+structure, cleaning up some files and add some functionality to improve the
+usability. The core functionality is however not changed.
 
 The directories contain the following:
 
-- ```build_custom_firmware```: A variation of ```build_firmware_template```.
-- ```build_firmware_template```: A template directory for creating a custom firmware.
-The original name in the source was ```gpio_test```.
-- ```generated```: Some generated files needed for the RISC-V firmware. No changes
+- `build_custom_firmware`: A variation of `build_firmware_template`.
+- `build_firmware_template`: A template directory for creating a custom firmware.
+The original name in the source was `gpio_test`.
+- `generated`: Some generated files needed for the RISC-V firmware. No changes
 were made.
-- ```gpio_config```: Scripts and files needed for the GPIO configuration.
-- ```hw```: Only contains common.h.
-- ```nucleo_firmware```: All files needed to flash the Nucleo board.
-- ```riscv_firmware_src```: Files related to the RISC-V firmware for the caravel
+- `gpio_config`: Scripts and files needed for the GPIO configuration.
+- `hw`: Only contains common.h.
+- `nucleo_firmware`: All files needed to flash the Nucleo board.
+- `riscv_firmware_src`: Files related to the RISC-V firmware for the caravel
 SoC.
-- ```util```: Contains some scripts to interact with the caravel SoC.
+- `util`: Contains some scripts to interact with the caravel SoC when it is
+  used without the Nucleo board.
