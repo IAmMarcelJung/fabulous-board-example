@@ -43,6 +43,7 @@ else
 	sync
 	sleep 2
 	mpremote connect $(DEV) exec "import io_config; io_config.run_sanity_check()"
+	mpremote rm :config_io_o.hex
 endif
 
 # power up the caravel hat while mounted to Nucleo
