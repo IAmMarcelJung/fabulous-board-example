@@ -34,11 +34,12 @@ get_config: check_device
 	mpremote cp :gpio_config_def.py .
 
 # run a sanity check using the gpio_config_def.py file on the nucleo
-sanity_check: check_device
+sanity_check: check_device hex
 ifndef CONFIG_FILE
 	$(error CONFIG_FILE is undefined, please export it before running make flash)
 else
 	$(COPY_CMD) $(CONFIG_FILE) $(FLASH)/gpio_config_def.py
+	$(COPY_CMD) $(CWD)config_io_o.hex $(FLASH)
 	sync
 	sleep 2
 	mpremote connect $(DEV) exec "import io_config; io_config.run_sanity_check()"
