@@ -3,12 +3,14 @@ DEV=$(shell mpremote connect list | grep STLink | cut -f 1 -d ' ')
 COPY_CMD=rshell --port $(DEV) cp
 LS_CMD=rshell --port $(DEV) ls
 CWD := $(dir $(lastword $(MAKEFILE_LIST)))
+PATTERN ?= config_io_o
+SED_CMD=sed -i'.orig' -e
 
 PYTHON_SRC := $(CWD)src/
 PYTHON_FILES := $(wildcard $(PYTHON_SRC)*.py)
 MPY_FILES := $(patsubst $(PYTHON_SRC)%.py,$(PYTHON_SRC)%.mpy,$(PYTHON_FILES))
 TOOLCHAIN_PREFIX=riscv64-unknown-elf
-INCLUDES=-I$(shell pwd) -I../ -I../generated/ -I../riscv_firmware_src/ -I../calibration/ -I./src/
+INCLUDES=-I$(shell pwd) -I../ -I../generated/ -I../riscv_firmware_src/ -I./src/
 
 compile: $(MPY_FILES)
 
@@ -33,10 +35,10 @@ get_config: check_device
 
 # run a sanity check using the gpio_config_def.py file on the nucleo
 sanity_check: check_device
-ifndef FILE
-	$(error $(CWD)FILE is undefined, please export it before running make flash)
+ifndef CONFIG_FILE
+	$(error CONFIG_FILE is undefined, please export it before running make flash)
 else
-	$(COPY_CMD) $(CWD)$(FILE) $(FLASH)/gpio_config_def.py
+	$(COPY_CMD) $(CONFIG_FILE) $(FLASH)/gpio_config_def.py
 	sync
 	sleep 2
 	mpremote connect $(DEV) exec "import io_config; io_config.run_sanity_check()"
@@ -51,10 +53,10 @@ change_power: check_device check_voltage
 
 # flash firmware on caravel hat while mounted to Nucleo
 flash: check_device
-ifndef FILE
-	$(error $(CWD)FILE is undefined, please export it before running make flash)
+ifndef FIRMWARE_FILE
+	$(error FIRMWARE_FILE is undefined, please export it before running make flash)
 else
-	$(COPY_CMD) $(FILE) $(FLASH)/firmware.hex
+	$(COPY_CMD) $(FIRMWARE_FILE) $(FLASH)/firmware.hex
 	sync
 	sleep 2
 	mpremote connect $(DEV) exec "import io_config; io_config.run_flash_caravel()"
@@ -122,13 +124,10 @@ setup: check-python
 
 .SUFFIXES:
 
-PATTERN ?= config_io_o
-SED_CMD=sed -i'.orig' -e
-
 hex: $(PATTERN:=.hex)
 
 %.elf: %.c $(CWD)../riscv_firmware_src/sections.lds $(CWD)../riscv_firmware_src/crt0_vex.S
-	$(TOOLCHAIN_PATH)$(TOOLCHAIN_PREFIX)-gcc $(INCLUDES) -O0 -mabi=ilp32 -march=rv32i -D__vexriscv__ -Wl,-Bstatic,-T,$(CWD)../riscv_firmware_src/sections.lds,--strip-debug -ffreestanding -nostdlib -o $@ $(CWD)../riscv_firmware_src/crt0_vex.S $(CWD)../riscv_firmware_src/isr.c  $(CWD)../calibration/runtime.c $(CWD)../gpio_config/gpio_config_io.c $(CWD)src/send_packet.c $<
+	$(TOOLCHAIN_PATH)$(TOOLCHAIN_PREFIX)-gcc $(INCLUDES) -O0 -mabi=ilp32 -march=rv32i -D__vexriscv__ -Wl,-Bstatic,-T,$(CWD)../riscv_firmware_src/sections.lds,--strip-debug -ffreestanding -nostdlib -o $@ $(CWD)../riscv_firmware_src/crt0_vex.S $(CWD)../riscv_firmware_src/isr.c  $(CWD)../gpio_config/gpio_config_io.c $(CWD)src/send_packet.c $<
 
 %.hex: %.elf
 	$(TOOLCHAIN_PATH)$(TOOLCHAIN_PREFIX)-objcopy -O verilog $< $@
@@ -136,6 +135,6 @@ hex: $(PATTERN:=.hex)
 	$(SED_CMD) '1,/@00/!d' $@
 
 clean::
-	rm -f *.elf $(PYTHON_SRC)*.mpy *.orig
+	rm -f *.elf $(PYTHON_SRC)*.mpy *.orig config_io_o.hex
 
 .PHONY: clean hex copy repl run
