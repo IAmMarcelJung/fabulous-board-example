@@ -150,6 +150,8 @@ hex: $(PATTERN:=.hex)
 	$(SED_CMD) 's/@1000/@0000/g' $@
 	$(SED_CMD) '1,/@00/!d' $@
 
+copy_config_file: $(CONFIG_FILE_TARGET)
+
 $(CONFIG_FILE_TARGET): | run get_config $(CWD)$(CONFIG_FILES_DIR)/$(PART_OUTPUT_DIR)
 	cp $(CONFIG_FILE_PATTERN).py $(CWD)$(CONFIG_FILES_DIR)/$(PART_OUTPUT_DIR)/$(PART_OUTPUT_FILE)
 
@@ -162,4 +164,4 @@ run_and_get_config: $(CONFIG_FILE_TARGET)
 clean::
 	rm -f *.elf $(PYTHON_SRC)*.mpy *.orig config_io_o.hex
 
-.PHONY: clean hex copy repl run
+.PHONY: clean hex copy repl run copy_config_file
