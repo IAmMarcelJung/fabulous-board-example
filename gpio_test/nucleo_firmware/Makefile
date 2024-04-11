@@ -31,6 +31,10 @@ MPY_FILES := $(patsubst $(PYTHON_SRC)%.py,$(PYTHON_SRC)%.mpy,$(PYTHON_FILES))
 SED_CMD :=sed -i'.orig' -e
 CWD := $(dir $(lastword $(MAKEFILE_LIST)))
 
+ifeq ($(strip $(DONT_STRIP_HEX_FILE)),)
+	STRIP = $(SED_CMD) '1,/@00/!d' $@
+endif
+
 compile: $(MPY_FILES)
 
 $(PYTHON_SRC)%.mpy: $(PYTHON_SRC)%.py
@@ -160,7 +164,7 @@ hex: $(GEN_CONFIG_HEADER_PREREQUISITE) $(PATTERN:=.hex)
 %.hex: %.elf
 	$(TOOLCHAIN_PATH)$(TOOLCHAIN_PREFIX)-objcopy -O verilog $< $@
 	$(SED_CMD) 's/@1000/@0000/g' $@
-	$(SED_CMD) '1,/@00/!d' $@
+	$(STRIP)
 
 copy_config_file: $(CONFIG_FILE_TARGET)
 
