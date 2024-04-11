@@ -4,6 +4,7 @@ PATTERN := custom_firmware
 FIRMWARE_FILE ?= $(PATTERN).hex
 GPIO_CONFIG_DATA := $(CWD)../gpio_config/gpio_config_data.h
 GEN_CONFIG_HEADER_PREREQUISITE := gen_config_header
+DONT_STRIP_HEX_FILE := true
 include ../nucleo_firmware/Makefile
 
 check: gpio_config_def.py gpio_config_io.py gen_config_header
