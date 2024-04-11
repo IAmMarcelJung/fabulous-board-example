@@ -5,7 +5,6 @@ FIRMWARE_FILE ?= $(PATTERN).hex
 include ../nucleo_firmware/Makefile
 
 VOLTAGE=$(shell python3 -c "from gpio_config_def import voltage; print(voltage)")
-#VOLTAGE ?= 1.6
 
 gpio_config_data.h: gpio_config_def.py gpio_config_io.py
 	python3 ../gpio_config/gpio_config_builder.py
