@@ -1,12 +1,12 @@
 # Definitions used for device interaction
 FLASH := /pyboard/flash/
 DEV := $(shell mpremote connect list | grep STLink | cut -f 1 -d ' ')
-COPY_CMD :=rshell --port $(DEV) cp
+COPY_CMD := rshell --port $(DEV) cp
 LS_CMD := rshell --port $(DEV) ls
 
 # Definitions related to firmware creation
-INCLUDES :=-I$(shell pwd) -I../ -I../generated/ -I../riscv_firmware_src/ -I./src/
-TOOLCHAIN_PREFIX :=riscv64-unknown-elf
+INCLUDES := -I$(shell pwd) -I../ -I../generated/ -I../riscv_firmware_src/ -I./src/
+TOOLCHAIN_PREFIX := riscv64-unknown-elf
 PATTERN ?= config_io_o
 
 # Definitions related to the GPIO config
@@ -21,7 +21,6 @@ GPIO_CONFIG_DATA := $(CWD)../gpio_config/gpio_config_data.h
 ifeq ($(wildcard ../nucleo_firmware/$(CONFIG_FILE_TARGET)), )
 	PREREQUISITES_IF_CONFIG_FILE_TARGET_EXISTS = copy_config_file
 endif
-
 
 # Definitions related to python
 PYTHON_SRC := $(CWD)src/
