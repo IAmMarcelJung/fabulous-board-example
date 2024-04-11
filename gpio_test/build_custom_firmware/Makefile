@@ -20,14 +20,14 @@ check: gpio_config_def.py gpio_config_io.py gpio_config_data.h
 %.bin: %.elf
 	$(TOOLCHAIN_PATH)$(TOOLCHAIN_PREFIX)-objcopy -O binary $< $@
 
-flash_nucleo: custom_firmware.hex flash
-	echo "Finished flashing nucleo."
+flash_nucleo: gen_config_header custom_firmware.hex flash
+	@echo "Finished flashing nucleo."
 
-auto_check_and_flash: check_part F746ZG run get_config gpio_config_data.h check flash_nucleo
-	echo "Finished automatic checking and flashing."
+auto_check_and_flash: check_part F746ZG run get_config gen_config_header check flash_nucleo
+	@echo "Finished automatic checking and flashing."
 
-auto_flash: check_part gpio_config_data.h flash_nucleo
-	echo "Finished automatic checking and flashing."
+auto_flash: check_part gen_config_header flash_nucleo
+	@echo "Finished automatic checking and flashing."
 
 
 clean::
