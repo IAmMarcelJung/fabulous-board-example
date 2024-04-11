@@ -2,7 +2,6 @@
 # to set the values defined here in the included Makefile
 PATTERN := custom_firmware
 FIRMWARE_FILE ?= $(PATTERN).hex
-VOLTAGE=$(shell python3 -c "from gpio_config_def import voltage; print(voltage)")
 include ../nucleo_firmware/Makefile
 
 GPIO_CONFIG_DATA := ../gpio_config/gpio_config_data.h
