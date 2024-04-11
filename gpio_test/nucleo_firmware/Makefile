@@ -16,6 +16,12 @@ CONFIG_FILE_PATTERN := gpio_config_def
 PART_OUTPUT_FILE := $(CONFIG_FILE_PATTERN)_part_$(PART)_$(VOLTAGE_STR)_V.py
 PART_OUTPUT_DIR := part_$(PART)
 CONFIG_FILE_TARGET = $(CONFIG_FILES_DIR)/$(PART_OUTPUT_DIR)/$(PART_OUTPUT_FILE)
+GPIO_CONFIG_DATA := $(CWD)../gpio_config/gpio_config_data.h
+
+ifeq ($(wildcard ../nucleo_firmware/$(CONFIG_FILE_TARGET)), )
+	PREREQUISITES_IF_CONFIG_FILE_TARGET_EXISTS = copy_config_file
+endif
+
 
 # Definitions related to python
 PYTHON_SRC := $(CWD)src/
@@ -138,11 +144,18 @@ setup: check-python
 	python3 -m pip install mpy-cross
 	python3 -m pip install mpremote
 
+gen_config_header: $(GPIO_CONFIG_DATA)
+
+$(GPIO_CONFIG_DATA): check_part check_voltage gpio_config_io.py $(PREREQUISITES_IF_CONFIG_FILE_TARGET_EXISTS)
+	python3 ../gpio_config/gpio_config_builder.py
+	mv gpio_config_data.h $(GPIO_CONFIG_DATA)
+
 .SUFFIXES:
 
-hex: $(PATTERN:=.hex)
+hex: $(GEN_CONFIG_HEADER_PREREQUISITE) $(PATTERN:=.hex)
 
 %.elf: %.c $(CWD)../riscv_firmware_src/sections.lds $(CWD)../riscv_firmware_src/crt0_vex.S
+	#$(TOOLCHAIN_PATH)$(TOOLCHAIN_PREFIX)-gcc $(INCLUDES) -O0 -mabi=ilp32 -march=rv32i_zicsr -D__vexriscv__ -Wl,-Bstatic,-T,$(CWD)../riscv_firmware_src/sections.lds,--strip-debug -ffreestanding -nostdlib -o $@ $(CWD)../riscv_firmware_src/crt0_vex.S $(CWD)../riscv_firmware_src/isr.c  $(CWD)../gpio_config/gpio_config_io.c $(CWD)src/send_packet.c $<
 	$(TOOLCHAIN_PATH)$(TOOLCHAIN_PREFIX)-gcc $(INCLUDES) -O0 -mabi=ilp32 -march=rv32i -D__vexriscv__ -Wl,-Bstatic,-T,$(CWD)../riscv_firmware_src/sections.lds,--strip-debug -ffreestanding -nostdlib -o $@ $(CWD)../riscv_firmware_src/crt0_vex.S $(CWD)../riscv_firmware_src/isr.c  $(CWD)../gpio_config/gpio_config_io.c $(CWD)src/send_packet.c $<
 
 %.hex: %.elf
