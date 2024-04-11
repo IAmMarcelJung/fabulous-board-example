@@ -120,12 +120,12 @@ endif
 
 check_part:
 ifndef PART
-	$(error "PART not defined.  Please use 'make run PART=<part_id>'")
+	$(error "PART not defined.  Please add 'PART=<part_id>'")
 endif
 
 check_voltage:
 ifndef VOLTAGE
-	$(error "VOLTAGE not defined.  Please use 'make change_power VOLTAGE=<voltage>'")
+	$(error "VOLTAGE not defined.  Please add 'VOLTAGE=<voltage>'")
 endif
 
 check-python:
