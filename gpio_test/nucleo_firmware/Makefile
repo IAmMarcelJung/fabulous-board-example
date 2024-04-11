@@ -52,7 +52,7 @@ sanity_check: check_device hex
 ifndef CONFIG_FILE
 	$(error CONFIG_FILE is undefined, please export it before running make flash)
 else
-	$(COPY_CMD) $(CONFIG_FILE) $(FLASH)/$(CONFIG_FILE_PATTERN).py
+	$(COPY_CMD) $(CONFIG_FILE) $(FLASH)$(CONFIG_FILE_PATTERN).py
 	$(COPY_CMD) $(CWD)config_io_o.hex $(FLASH)
 	sync
 	sleep 2
@@ -72,7 +72,7 @@ flash: check_device
 ifndef FIRMWARE_FILE
 	$(error FIRMWARE_FILE is undefined, please export it before running make flash)
 else
-	$(COPY_CMD) $(FIRMWARE_FILE) $(FLASH)/firmware.hex
+	$(COPY_CMD) $(FIRMWARE_FILE) $(FLASH)firmware.hex
 	sync
 	sleep 2
 	mpremote connect $(DEV) exec "import io_config; io_config.run_flash_caravel()"
