@@ -19,7 +19,7 @@ CONFIG_FILE_TARGET = $(CONFIG_FILES_DIR)/$(PART_OUTPUT_DIR)/$(PART_OUTPUT_FILE)
 GPIO_CONFIG_DATA := $(CWD)../gpio_config/gpio_config_data.h
 
 ifeq ($(wildcard ../nucleo_firmware/$(CONFIG_FILE_TARGET)), )
-	PREREQUISITES_IF_CONFIG_FILE_TARGET_EXISTS = copy_config_file
+	PREREQUISITES_IF_CONFIG_FILE_TARGET_EXISTS := $(CONFIG_FILE_TARGET)
 endif
 
 # Definitions related to python
@@ -147,9 +147,17 @@ setup: check-python
 	python3 -m pip install mpy-cross
 	python3 -m pip install mpremote
 
+copy_config_file: $(PREREQUISITES_IF_CONFIG_FILE_TARGET_EXISTS)
+	cp $(CWD)$(CONFIG_FILES_DIR)/$(PART_OUTPUT_DIR)/$(PART_OUTPUT_FILE) $(CONFIG_FILE_PATTERN).py
+
+$(CONFIG_FILE_TARGET): | run get_config $(CWD)$(CONFIG_FILES_DIR)/$(PART_OUTPUT_DIR)
+
+$(CONFIG_FILES_DIR)/$(PART_OUTPUT_DIR):
+	mkdir -p $@
+
 gen_config_header: $(GPIO_CONFIG_DATA)
 
-$(GPIO_CONFIG_DATA): check_part check_voltage gpio_config_io.py $(PREREQUISITES_IF_CONFIG_FILE_TARGET_EXISTS)
+$(GPIO_CONFIG_DATA): check_part check_voltage gpio_config_io.py copy_config_file
 	python3 ../gpio_config/gpio_config_builder.py
 	mv gpio_config_data.h $(GPIO_CONFIG_DATA)
 
@@ -165,13 +173,6 @@ hex: $(GEN_CONFIG_HEADER_PREREQUISITE) $(PATTERN:=.hex)
 	$(SED_CMD) 's/@1000/@0000/g' $@
 	$(STRIP)
 
-copy_config_file: $(CONFIG_FILE_TARGET)
-
-$(CONFIG_FILE_TARGET): | run get_config $(CWD)$(CONFIG_FILES_DIR)/$(PART_OUTPUT_DIR)
-	cp $(CONFIG_FILE_PATTERN).py $(CWD)$(CONFIG_FILES_DIR)/$(PART_OUTPUT_DIR)/$(PART_OUTPUT_FILE)
-
-$(CONFIG_FILES_DIR)/$(PART_OUTPUT_DIR):
-	mkdir -p $@
 
 run_and_get_config: $(CONFIG_FILE_TARGET)
 	@echo "Executed GPIO test and stored config file to $(CWD)$(CONFIG_FILE_TARGET)"
