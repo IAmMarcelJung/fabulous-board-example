@@ -195,7 +195,7 @@ n_bits = len(config_stream)
 #
 #  create output files
 #
-
+print(f"Creating config data for part {part} using {voltage}V.")
 print("stream_h   = " + stream_h)
 print("stream_l   = " + stream_l)
 print("n_bits = {}".format(n_bits))
