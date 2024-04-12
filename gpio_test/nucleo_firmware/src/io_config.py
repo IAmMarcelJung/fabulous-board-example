@@ -304,9 +304,9 @@ def change_config(channel, gpio_l, gpio_h, voltage, test, bypass=False):
             f.write("gpio_l = [\n")
             for i in gpio_l.array:
                 if io < channel:
-                    f.write(f"['IO[{io}]', {i}],\n")
+                    f.write(f"    ['IO[{io}]', {i}],\n")
                 else:
-                    f.write(f"['IO[{io}]', H_UNKNOWN],\n")
+                    f.write(f"    ['IO[{io}]', H_UNKNOWN],\n")
                 io = io + 1
             f.write("]\n")
             f.close()
@@ -575,14 +575,15 @@ def run(part_name="** unspecified **", voltage=1.6, analog=False):
     with open(config_filename, "w") as f:
         f.write(f"# gpio_config_def.py file for part {part_name}\n")
         f.write(f"# {VERSION}\n")
+        f.write(f"part = {part_name}\n")
         f.write(f"voltage = {voltage:1.2f}\n")
         f.write(f"analog = {analog}\n")
         f.write(f"\n")
-        f.write(f"H_NONE        = 0  \n")
-        f.write(f"H_DEPENDENT   = 1  \n")
-        f.write(f"H_INDEPENDENT = 2  \n")
-        f.write(f"H_SPECIAL     = 3  \n")
-        f.write(f"H_UNKNOWN     = 4  \n")
+        f.write(f"H_NONE        = 0\n")
+        f.write(f"H_DEPENDENT   = 1\n")
+        f.write(f"H_INDEPENDENT = 2\n")
+        f.write(f"H_SPECIAL     = 3\n")
+        f.write(f"H_UNKNOWN     = 4\n")
         f.write(f"\n")
         f.close()
 
