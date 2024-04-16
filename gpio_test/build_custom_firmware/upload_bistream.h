@@ -3,6 +3,6 @@
 
 #include <stdint.h>
 
-void load_bitstream(uint8_t const * const bitstream_data, uint32_t bitstream);      
+void upload_bitstream(uint8_t const * const bitstream_data, uint32_t bitstream);
 
 #endif /* UPLOAD_BITSTREAM_H */

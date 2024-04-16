@@ -14,7 +14,7 @@
  * @param bitream_size The bitstream size in bytes.
  * @param ctrl_word The control word used to control the bitbang module.
  */
-void load_bitstream(uint8_t const * const bitstream_data, uint32_t bitream_size)
+void upload_bitstream(uint8_t const * const bitstream_data, uint32_t bitream_size)
 {
     for (uint32_t byte_pos = 0; byte_pos < bitream_size; byte_pos++)
     {
