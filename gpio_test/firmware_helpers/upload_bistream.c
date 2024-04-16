@@ -1,6 +1,5 @@
 #include "upload_bistream.h"
 #include "../riscv_firmware_src/defs.h"
-#include "io_def.h"
 
 #define PIN_SCLK IO_10_DATA_BIT_POS
 #define PIN_SDATA IO_11_DATA_BIT_POS
