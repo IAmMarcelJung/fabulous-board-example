@@ -61,6 +61,6 @@ typedef uint8_t bool_t;
 
 void set_pin(uint8_t pin, te_chain chain);
 void clear_pin(uint8_t pin, te_chain chain);
-void set_or_clear(uint8_t pin, te_chain, bool_t set);
+void set_or_clear(uint8_t pin, te_chain chain, bool_t set);
 
 #endif /* IO_DEF_H */
