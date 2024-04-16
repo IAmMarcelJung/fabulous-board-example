@@ -16,16 +16,16 @@
  */
 void upload_bitstream(uint8_t const * const bitstream_data, uint32_t bitream_size)
 {
-    for (uint32_t byte_pos = 0; byte_pos < bitream_size; byte_pos++)
+    for (uint32_t byte_pos = 0u; byte_pos < bitream_size; byte_pos++)
     {
-        for (uint32_t bit_pos = 0; bit_pos < sizeof(uint8_t); bit_pos++)
+        for (uint32_t bit_pos = 0u; bit_pos < sizeof(uint8_t); bit_pos++)
         {
             bool_t set;
-            set = bool_t(bitstream_data[byte_pos] >> (7 - bit_pos) & 0x1);
+            set = bool_t(bitstream_data[byte_pos] >> (7u - bit_pos) & 0x1u);
             set_or_clear(PIN_SDATA, LOW_CHAIN, set);
             set_pin(PIN_SCLK, LOW_CHAIN);
             // TODO toggle sclk high
-            set = (bool_t)(ctrl_word >> (31 - (8 * (byte_pos % 4) + bit_pos)) & 0x1);
+            set = (bool_t)(ctrl_word >> (31u - (8u * (byte_pos % 4u) + bit_pos)) & 0x1u);
             set_or_clear(PIN_SDATA, LOW_CHAIN, set);
             clear_pin(PIN_SCLK, LOW_CHAIN);
         }
