@@ -17,8 +17,6 @@ target_include_directories(
           ${PROJECT_SOURCE_DIR}
           ${CMAKE_CURRENT_SOURCE_DIR})
 
-target_compile_options(runTests PRIVATE -g)
-
 target_link_libraries(runTests PUBLIC io_def_mock upload_bitstream
                                       ${GTEST_LIBRARIES} gtest_main)
 
