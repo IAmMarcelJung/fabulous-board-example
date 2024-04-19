@@ -1,11 +1,20 @@
 // tests.cpp
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
+
 #include "fff.h"
 
+#include <vector>
+
+extern "C" {
 #include <upload_bitstream.h>
 #include <bitstream.h>
+#include <io_def.h>
 #include <io_def_mock.h>
+}
+
+#include <filesystem>
+#include <iostream>
 
 #define FFF_EMBEDED_CODE
 
