@@ -1,13 +1,13 @@
 #include <stdint.h>
 
-#include "../riscv_firmware_src/defs.h"
-#include "io_def.h"
+#include <defs.h>
+#include <io_def.h>
 
 /**
  * @brief Set the given pin of the given chain.
  * @param pin The pin to be set.
  * @param chain The GPIO chain to be used.
- */ 
+ */
 void set_pin(uint8_t pin, te_chain chain)
 {
     if (LOW_CHAIN == chain)
@@ -24,7 +24,7 @@ void set_pin(uint8_t pin, te_chain chain)
  * @brief Clear the given pin of the given chain.
  * @param pin The pin to be cleared.
  * @param chain The GPIO chain to be used.
- */ 
+ */
 void clear_pin(uint8_t pin, te_chain chain)
 {
     if (LOW_CHAIN == chain)
@@ -42,10 +42,10 @@ void clear_pin(uint8_t pin, te_chain chain)
  * @param pin The pin to be set or cleared.
  * @param chain The GPIO chain to be used.
  * @param set A flag to select whether to set or clear the pin.
- */ 
-void set_or_clear_pin(uint8_t pin, te_chain chain, bool_t set)
+ */
+void set_or_clear_pin(uint8_t pin, te_chain chain, bool set)
 {
-    if (true == set) 
+    if (true == set)
     {
         set_pin(pin, chain);
     }
