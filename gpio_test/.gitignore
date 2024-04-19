@@ -3,3 +3,4 @@ debug/
 .ccls
 .cache
 *.vimspector.json
+compile_commands.json
