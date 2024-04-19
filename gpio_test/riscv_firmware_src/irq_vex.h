@@ -26,10 +26,17 @@ static inline unsigned int irq_getmask(void)
 	return mask;
 }
 
+#ifndef GTEST
 static inline void irq_setmask(unsigned int mask)
 {
 	asm volatile ("csrw %0, %1" :: "i"(CSR_IRQ_MASK), "r"(mask));
 }
+#else
+static inline void irq_setmask(unsigned int mask)
+{
+}
+#endif /* GTEST */
+
 
 static inline unsigned int irq_pending(void)
 {
