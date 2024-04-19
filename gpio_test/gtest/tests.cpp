@@ -21,11 +21,11 @@ extern "C" {
 DEFINE_FFF_GLOBALS;
 
 #define FFF_FAKES_LIST(FAKE)    \
-    FAKE(set_or_clear)          \
+    FAKE(set_or_clear_pin)      \
     FAKE(set_pin)               \
     FAKE(clear_pin)
 
-class MyTestSuite : public ::testing::Test
+class BitStreamTestSuite : public ::testing::Test
 {
     protected:
         void SetUp() override
@@ -33,6 +33,8 @@ class MyTestSuite : public ::testing::Test
             FFF_FAKES_LIST(RESET_FAKE);
 
             FFF_RESET_HISTORY();
+            set_or_clear_pin_fake.custom_fake = my_fake;
+            ASSERT_EQ(std::remove("transmitted_data.txt"), 0) << "Could not remove transmitted data file." << std::endl;
         }
 
         // Tear down common resources or state after each test case
@@ -41,11 +43,37 @@ class MyTestSuite : public ::testing::Test
         }
 };
 
-TEST(UploadBitstreamTest, TestCall) {
+template<typename T>
+
+void print_arg_history(std::vector<T> history)
+{
+    std::cout << "History: " << std::endl;
+//#for (T elem : history)
+    for (size_t i = 0; i < history.size(); i += 2)
+    {
+        std::cout <<  static_cast<int>(history[i]) << ", ";
+    }
+    std::cout <<  std::endl;
+}
+
+TEST_F(BitStreamTestSuite, TestCall)
+{
+
     uint8_t bitstream[] = {0x01, 0x02, 0x03, 0x0A};
-    //upload_bitstream(bitstream, sizeof(bitstream)/sizeof(uint8_t));
-    upload_bitstream(bitstream, sizeof(bitstream)/sizeof(uint8_t));
-    ASSERT_EQ(set_or_clear_fake.call_count, 2);
-    //ASSERT_EQ(set_pin_fake.call_count, 1);
-    //ASSERT_EQ(0, squareRoot(0.0));
+    uint32_t bitstream_size = sizeof(bitstream)/sizeof(uint8_t);
+    std::cout << "bitstream_size: " <<  bitstream_size << std::endl;
+    upload_bitstream(bitstream, bitstream_size);
+
+    bool * history_pointer = set_or_clear_pin_fake.arg2_history;
+    std:std::vector<uint8_t> history(history_pointer, history_pointer + 50);
+    print_arg_history(history);
+    ASSERT_EQ(set_or_clear_pin_fake.call_count, 64);
+    ASSERT_EQ(set_pin_fake.call_count, 32);
+    ASSERT_EQ(clear_pin_fake.call_count, 32);
+}
+
+TEST_F(BitStreamTestSuite, TestBitstream)
+{
+    uint32_t bitstream_size = sizeof(bitstream)/sizeof(uint8_t);
+    upload_bitstream(bitstream, bitstream_size);
 }
