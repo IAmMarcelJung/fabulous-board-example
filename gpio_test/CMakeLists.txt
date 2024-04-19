@@ -20,32 +20,12 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(googletest)
 
 enable_testing()
-#[===[
-add_executable(
-    hello_test
-    hello_test.cc
-    )
-target_link_libraries(
-    hello_test
-    GTest::gtest_main
-    )
-]===]
 
 find_package(GTest)
 include(GoogleTest)
-# gtest_discover_tests(hello_test) add_custom_target(build_runTests COMMAND
-# ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target runTests COMMENT
-# "Building runTests" )
-
-# add_dependencies(build_runTests runTests)
-#
 
 add_subdirectory(firmware_helpers)
 add_subdirectory(gtest)
 add_subdirectory(mocks)
 add_subdirectory(riscv_firmware_src)
 add_subdirectory(gpio_config)
-
-# include_directories(riscv_firmware_src) include_directories(generated)
-# include_directories(hw) include_directories(gtest) include_directories(mocks)
-# include_directories(firmware_helpers)
