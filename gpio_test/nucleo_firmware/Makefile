@@ -5,7 +5,7 @@ COPY_CMD := rshell --port $(DEV) cp
 LS_CMD := rshell --port $(DEV) ls
 
 # Definitions related to firmware creation
-INCLUDES := -I$(shell pwd) -I../ -I../generated/ -I../riscv_firmware_src/ -I./src/
+INCLUDES := -I$(shell pwd) -I../  -I../riscv_firmware_src/ -I./src/ -I../hw -I../gpio_config
 TOOLCHAIN_PREFIX := riscv64-unknown-elf
 PATTERN ?= config_io_o
 
