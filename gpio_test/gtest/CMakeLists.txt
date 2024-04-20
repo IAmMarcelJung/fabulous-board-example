@@ -2,7 +2,7 @@
 include(CMakePrintHelpers)
 
 cmake_print_variables(CMAKE_CURRENT_SOURCE_DIR)
-add_executable(runTests tests.cpp)
+add_executable(runTests bitstream_tests.cpp)
 
 add_compile_definitions(GTEST)
 
