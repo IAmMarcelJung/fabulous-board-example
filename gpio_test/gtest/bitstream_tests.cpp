@@ -33,8 +33,7 @@ class BitStreamTestSuite : public ::testing::Test
             FFF_FAKES_LIST(RESET_FAKE);
 
             FFF_RESET_HISTORY();
-            set_or_clear_pin_fake.custom_fake = my_fake;
-            ASSERT_EQ(std::remove("transmitted_data.txt"), 0) << "Could not remove transmitted data file." << std::endl;
+            std::remove("transmitted_data.txt");
         }
 
         // Tear down common resources or state after each test case
@@ -59,14 +58,16 @@ void print_arg_history(std::vector<T> history)
 TEST_F(BitStreamTestSuite, TestCall)
 {
 
+    // Arrange
     uint8_t bitstream[] = {0x01, 0x02, 0x03, 0x0A};
     uint32_t bitstream_size = sizeof(bitstream)/sizeof(uint8_t);
-    std::cout << "bitstream_size: " <<  bitstream_size << std::endl;
+
+    // Act
     upload_bitstream(bitstream, bitstream_size);
 
     bool * history_pointer = set_or_clear_pin_fake.arg2_history;
-    std:std::vector<uint8_t> history(history_pointer, history_pointer + 50);
-    print_arg_history(history);
+
+    // Assert
     ASSERT_EQ(set_or_clear_pin_fake.call_count, 64);
     ASSERT_EQ(set_pin_fake.call_count, 32);
     ASSERT_EQ(clear_pin_fake.call_count, 32);
@@ -74,6 +75,10 @@ TEST_F(BitStreamTestSuite, TestCall)
 
 TEST_F(BitStreamTestSuite, TestBitstream)
 {
+    // Arrange
     uint32_t bitstream_size = sizeof(bitstream)/sizeof(uint8_t);
+    set_or_clear_pin_fake.custom_fake = my_fake;
+
+    // Act
     upload_bitstream(bitstream, bitstream_size);
 }
