@@ -25,7 +25,6 @@ void write_bit_to_file(uint8_t val)
     }
 
     fprintf(fd, "%d", val);
-    printf("%d", val);
 
     fclose(fd);
 }
