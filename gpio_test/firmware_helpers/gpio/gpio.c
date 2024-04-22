@@ -1,6 +1,7 @@
 #include <stdint.h>
-
 #include <defs.h>
+
+#include <register_actions.h>
 #include <gpio.h>
 
 /**
@@ -12,6 +13,7 @@ void set_pin(uint8_t pin, te_chain chain)
 {
     if (LOW_CHAIN == chain)
     {
+        //TODO: replace by register action
         reg_mprj_datal |= IO_DATA_BIT(pin);
     }
     else
