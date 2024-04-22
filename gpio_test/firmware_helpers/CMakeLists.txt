@@ -1,5 +1,9 @@
 add_library(io_def STATIC io_def/io_def.c)
 add_library(upload_bitstream STATIC upload_bitstream/upload_bitstream.c)
+add_library(register_actions STATIC register_actions/register_actions.c)
+
+target_include_directories(register_actions
+                           PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/register_actions)
 
 target_include_directories(
   io_def PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/io_def ${CMAKE_SOURCE_DIR}/hw
