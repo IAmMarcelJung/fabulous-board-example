@@ -1,7 +1,7 @@
 #include <stdint.h>
 
 #include <defs.h>
-#include <io_def.h>
+#include <gpio.h>
 
 /**
  * @brief Set the given pin of the given chain.

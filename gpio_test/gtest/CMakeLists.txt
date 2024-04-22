@@ -22,7 +22,7 @@ target_include_directories(
 
 target_include_directories(
   gpio_tests
-  PRIVATE ${PROJECT_SOURCE_DIR}/firmware_helpers/io_def
+  PRIVATE ${PROJECT_SOURCE_DIR}/firmware_helpers/gpio
           ${PROJECT_SOURCE_DIR}/riscv_firmware_src
           ${PROJECT_SOURCE_DIR}/hw
           ${PROJECT_SOURCE_DIR}/gpio_config
@@ -33,10 +33,10 @@ target_include_directories(
   register_tests PRIVATE ${PROJECT_SOURCE_DIR}/firmware_helpers/register_actions
                          ${CMAKE_CURRENT_SOURCE_DIR})
 
-target_link_libraries(bitstream_tests PUBLIC io_def_mock upload_bitstream
+target_link_libraries(bitstream_tests PUBLIC gpio_mock upload_bitstream
                                              ${GTEST_LIBRARIES} gtest_main)
 
-target_link_libraries(gpio_tests PUBLIC io_def ${GTEST_LIBRARIES} gtest_main)
+target_link_libraries(gpio_tests PUBLIC gpio ${GTEST_LIBRARIES} gtest_main)
 target_link_libraries(register_tests PUBLIC register_actions ${GTEST_LIBRARIES}
                                             gtest_main)
 

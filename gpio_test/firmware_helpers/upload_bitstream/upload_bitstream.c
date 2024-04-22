@@ -1,7 +1,7 @@
 #include <upload_bitstream.h>
 
-#define PIN_SCLK IO_10_DATA_BIT_POS
-#define PIN_SDATA IO_11_DATA_BIT_POS
+#define PIN_SCLK GPIO_10
+#define PIN_SDATA GPIO_11
 
 #define CTRL_WORD_DISABLE_BITBANG 0x0000FAB0u
 #define CTRL_WORD_ENABLE_BITBANG 0x0000FAB1u

@@ -9,8 +9,8 @@
 extern "C" {
 #include <upload_bitstream.h>
 #include <bitstream.h>
-#include <io_def.h>
-#include <io_def_mock.h>
+#include <gpio.h>
+#include <gpio_mock.h>
 }
 
 #include <filesystem>
