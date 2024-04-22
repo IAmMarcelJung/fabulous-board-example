@@ -26,6 +26,7 @@ target_include_directories(
           ${PROJECT_SOURCE_DIR}/riscv_firmware_src
           ${PROJECT_SOURCE_DIR}/hw
           ${PROJECT_SOURCE_DIR}/gpio_config
+          ${PROJECT_SOURCE_DIR}/mocks/firmware_helpers_mock/inc
           ${PROJECT_SOURCE_DIR}
           ${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -36,7 +37,8 @@ target_include_directories(
 target_link_libraries(bitstream_tests PUBLIC gpio_mock upload_bitstream
                                              ${GTEST_LIBRARIES} gtest_main)
 
-target_link_libraries(gpio_tests PUBLIC gpio ${GTEST_LIBRARIES} gtest_main)
+target_link_libraries(gpio_tests PUBLIC gpio ${GTEST_LIBRARIES} gtest_main
+                                        register_actions_mock)
 target_link_libraries(register_tests PUBLIC register_actions ${GTEST_LIBRARIES}
                                             gtest_main)
 
