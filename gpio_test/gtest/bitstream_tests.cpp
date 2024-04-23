@@ -21,9 +21,9 @@ extern "C" {
 DEFINE_FFF_GLOBALS;
 
 #define FFF_FAKES_LIST(FAKE)    \
-    FAKE(set_or_clear_pin)      \
-    FAKE(set_pin)               \
-    FAKE(clear_pin)
+    FAKE(set_or_clear_gpio)      \
+    FAKE(set_gpio)               \
+    FAKE(clear_gpio)
 
 class BitStreamTestSuite : public ::testing::Test
 {
@@ -68,16 +68,16 @@ TEST_F(BitStreamTestSuite, TestCall)
     bool * history_pointer = set_or_clear_pin_fake.arg2_history;
 
     // Assert
-    ASSERT_EQ(set_or_clear_pin_fake.call_count, 64);
-    ASSERT_EQ(set_pin_fake.call_count, 32);
-    ASSERT_EQ(clear_pin_fake.call_count, 32);
+    ASSERT_EQ(set_or_clear_gpio_fake.call_count, 64);
+    ASSERT_EQ(set_gpio_fake.call_count, 32);
+    ASSERT_EQ(clear_gpio_fake.call_count, 32);
 }
 
 TEST_F(BitStreamTestSuite, TestBitstream)
 {
     // Arrange
     uint32_t bitstream_size = sizeof(bitstream)/sizeof(uint8_t);
-    set_or_clear_pin_fake.custom_fake = my_fake;
+    set_or_clear_gpio_fake.custom_fake = my_fake;
 
     // Act
     upload_bitstream(bitstream, bitstream_size);
