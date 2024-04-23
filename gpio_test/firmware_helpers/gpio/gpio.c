@@ -2,57 +2,56 @@
 #include <defs.h>
 
 #include <register_actions.h>
+#include <global_defs.h>
 #include <gpio.h>
 
 /**
- * @brief Set the given pin of the given chain.
+ * @brief Set the given pin.
  * @param pin The pin to be set.
- * @param chain The GPIO chain to be used.
  */
-void set_pin(uint8_t pin, te_chain chain)
+void set_pin(uint8_t pin)
 {
-    if (LOW_CHAIN == chain)
+    if (BITS_IN_WORD > pin)
     {
-        //TODO: replace by register action
-        reg_mprj_datal |= IO_DATA_BIT(pin);
+        set_bit(pin, &reg_mprj_datal);
     }
     else
     {
-        reg_mprj_datah |= IO_DATA_BIT(pin);
+        pin -= BITS_IN_WORD;
+        set_bit(pin, &reg_mprj_datah);
     }
 }
 
 /**
- * @brief Clear the given pin of the given chain.
+ * @brief Clear the given pin.
  * @param pin The pin to be cleared.
- * @param chain The GPIO chain to be used.
  */
-void clear_pin(uint8_t pin, te_chain chain)
+void clear_pin(uint8_t pin)
 {
-    if (LOW_CHAIN == chain)
+    if (BITS_IN_WORD > pin)
     {
-        reg_mprj_datal &= ~(IO_DATA_BIT(pin));
+        clear_bit(pin, &reg_mprj_datal);
     }
     else
     {
-        reg_mprj_datah &= ~(IO_DATA_BIT(pin));
+        pin -= BITS_IN_WORD;
+        clear_bit(pin, &reg_mprj_datah);
     }
 }
 
 /**
- * @brief Set or clear the given pin of the given chain depending on a flag.
+ * @brief Set or clear the given pin.
  * @param pin The pin to be set or cleared.
- * @param chain The GPIO chain to be used.
  * @param set A flag to select whether to set or clear the pin.
  */
-void set_or_clear_pin(uint8_t pin, te_chain chain, bool set)
+void set_or_clear_pin(uint8_t pin, bool set)
 {
     if (true == set)
     {
-        set_pin(pin, chain);
+        set_pin(pin);
     }
     else
     {
-        clear_pin(pin, chain);
+        clear_pin(pin);
     }
 }

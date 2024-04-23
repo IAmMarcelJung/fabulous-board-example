@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-// Definitons for the low chain
+// Definitons for the GPIO pins
 #define GPIO_0 0
 #define GPIO_1 1
 #define GPIO_2 2
@@ -24,8 +24,6 @@
 #define GPIO_16 16
 #define GPIO_17 17
 #define GPIO_18 18
-
-// Definitons for the high chain
 #define GPIO_19 19
 #define GPIO_20 20
 #define GPIO_21 21
@@ -46,14 +44,8 @@
 #define GPIO_36 36
 #define GPIO_37 37
 
-typedef enum
-{
-    HIGH_CHAIN,
-    LOW_CHAIN
-} te_chain;
-
-void set_pin(uint8_t pin, te_chain chain);
-void clear_pin(uint8_t pin, te_chain chain);
-void set_or_clear_pin(uint8_t pin, te_chain chain, bool set);
+void set_pin(uint8_t pin);
+void clear_pin(uint8_t pin);
+void set_or_clear_pin(uint8_t pin, bool set);
 
 #endif /* GPIO_H */
