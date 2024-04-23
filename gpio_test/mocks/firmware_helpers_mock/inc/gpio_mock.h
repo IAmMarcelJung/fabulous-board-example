@@ -3,8 +3,8 @@
 #include <gpio.h>
 #include <fff.h>
 
-DECLARE_FAKE_VOID_FUNC(set_pin, uint8_t, te_chain);
-DECLARE_FAKE_VOID_FUNC(clear_pin, uint8_t, te_chain);
-DECLARE_FAKE_VOID_FUNC(set_or_clear_pin, uint8_t, te_chain, bool);
+DECLARE_FAKE_VOID_FUNC(set_gpio, uint8_t);
+DECLARE_FAKE_VOID_FUNC(clear_gpio, uint8_t);
+DECLARE_FAKE_VOID_FUNC(set_or_clear_gpio, uint8_t, bool);
 
-void my_fake(uint8_t arg0, te_chain channel, bool set);
+void write_bit_to_file(uint8_t pin, bool set);

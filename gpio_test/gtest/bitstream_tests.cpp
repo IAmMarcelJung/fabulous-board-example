@@ -58,11 +58,13 @@ TEST_F(BitStreamTestSuite, TestExampleBitstream)
 {
 
     // Arrange
-    uint8_t bitstream[] = {0x01, 0x02, 0x03, 0x0A};
-    uint32_t bitstream_size = sizeof(bitstream)/sizeof(uint8_t);
+    uint8_t test_bitstream[] = {0x01, 0x02, 0x03, 0x0A};
+    // 00000001 00000010 00000011 00001010
+    uint32_t bitstream_size = sizeof(test_bitstream)/sizeof(uint8_t);
+    //set_or_clear_gpio_fake.custom_fake = write_bit_to_file;
 
     // Act
-    upload_bitstream(bitstream, bitstream_size);
+    upload_bitstream(test_bitstream, bitstream_size);
 
     // Assert
     ASSERT_EQ(set_or_clear_gpio_fake.call_count, 64);
@@ -74,11 +76,11 @@ TEST_F(BitStreamTestSuite, TestBitstream)
 {
     // Arrange
     uint32_t bitstream_size = sizeof(bitstream)/sizeof(uint8_t);
-    set_or_clear_gpio_fake.custom_fake = my_fake;
+    set_or_clear_gpio_fake.custom_fake = write_bit_to_file;
 
     // Act
     upload_bitstream(bitstream, bitstream_size);
 
     // Assert
-    // TODO: compare the produced bitstream with the bitstream produced by the python code
+    // TODO: compare the produced bitstream with the bitstream produced by the simulation
 }
