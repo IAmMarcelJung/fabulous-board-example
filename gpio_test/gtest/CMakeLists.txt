@@ -1,9 +1,16 @@
 include(CMakePrintHelpers)
 
 cmake_print_variables(CMAKE_CURRENT_SOURCE_DIR)
-add_executable(bitstream_tests bitstream_tests.cpp)
-add_executable(gpio_tests gpio_tests.cpp)
-add_executable(register_tests register_tests.cpp)
+add_executable(
+  bitstream_tests
+  bitstream_tests.cpp
+  ${PROJECT_SOURCE_DIR}/firmware_helpers/upload_bitstream/upload_bitstream.c)
+add_executable(gpio_tests gpio_tests.cpp
+                          ${PROJECT_SOURCE_DIR}/firmware_helpers/gpio/gpio.c)
+add_executable(
+  register_tests
+  register_tests.cpp
+  ${PROJECT_SOURCE_DIR}/firmware_helpers/register_actions/register_actions.c)
 
 add_custom_target(runTests DEPENDS bitstream_tests gpio_tests register_tests)
 
