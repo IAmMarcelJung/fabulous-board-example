@@ -1,6 +1,9 @@
 #include <gpio_config_io.h>
 #include "print_io.h"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wbuiltin-declaration-mismatch"
+
 void putchar(uint32_t c)
 {
     if (c == '\n')
@@ -8,6 +11,8 @@ void putchar(uint32_t c)
     while (reg_uart_txfull == 1);
     reg_uart_data = c;
 }
+
+#pragma GCC diagnostic pop
 
 void print(const char *p)
 {
