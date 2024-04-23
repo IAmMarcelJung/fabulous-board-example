@@ -55,7 +55,7 @@ void print_arg_history(std::vector<T> history)
     std::cout <<  std::endl;
 }
 
-TEST_F(BitStreamTestSuite, TestCall)
+TEST_F(BitStreamTestSuite, TestExampleBitstream)
 {
 
     // Arrange
