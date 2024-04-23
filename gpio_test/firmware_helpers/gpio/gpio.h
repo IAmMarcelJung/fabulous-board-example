@@ -5,47 +5,49 @@
 #include <stdbool.h>
 
 // Definitons for the GPIO pins
-#define GPIO_0 0
-#define GPIO_1 1
-#define GPIO_2 2
-#define GPIO_3 3
-#define GPIO_4 4
-#define GPIO_5 5
-#define GPIO_6 6
-#define GPIO_7 7
-#define GPIO_8 8
-#define GPIO_9 9
-#define GPIO_10 10
-#define GPIO_11 11
-#define GPIO_12 12
-#define GPIO_13 13
-#define GPIO_14 14
-#define GPIO_15 15
-#define GPIO_16 16
-#define GPIO_17 17
-#define GPIO_18 18
-#define GPIO_19 19
-#define GPIO_20 20
-#define GPIO_21 21
-#define GPIO_22 22
-#define GPIO_23 23
-#define GPIO_24 24
-#define GPIO_25 25
-#define GPIO_26 26
-#define GPIO_27 27
-#define GPIO_28 28
-#define GPIO_29 29
-#define GPIO_30 30
-#define GPIO_31 31
-#define GPIO_32 32
-#define GPIO_33 33
-#define GPIO_34 34
-#define GPIO_35 35
-#define GPIO_36 36
-#define GPIO_37 37
+#define GPIO_0 0u
+#define GPIO_1 1u
+#define GPIO_2 2u
+#define GPIO_3 3u
+#define GPIO_4 4u
+#define GPIO_5 5u
+#define GPIO_6 6u
+#define GPIO_7 7u
+#define GPIO_8 8u
+#define GPIO_9 9u
+#define GPIO_10 10u
+#define GPIO_11 11u
+#define GPIO_12 12u
+#define GPIO_13 13u
+#define GPIO_14 14u
+#define GPIO_15 15u
+#define GPIO_16 16u
+#define GPIO_17 17u
+#define GPIO_18 18u
+#define GPIO_19 19u
+#define GPIO_20 20u
+#define GPIO_21 21u
+#define GPIO_22 22u
+#define GPIO_23 23u
+#define GPIO_24 24u
+#define GPIO_25 25u
+#define GPIO_26 26u
+#define GPIO_27 27u
+#define GPIO_28 28u
+#define GPIO_29 29u
+#define GPIO_30 30u
+#define GPIO_31 31u
+#define GPIO_32 32u
+#define GPIO_33 33u
+#define GPIO_34 34u
+#define GPIO_35 35u
+#define GPIO_36 36u
+#define GPIO_37 37u
 
-void set_pin(uint8_t pin);
-void clear_pin(uint8_t pin);
-void set_or_clear_pin(uint8_t pin, bool set);
+#define NUM_OF_GPIOS 38u
+
+void set_gpio(uint8_t pin);
+void clear_gpio(uint8_t pin);
+void set_or_clear_gpio(uint8_t pin, bool set);
 
 #endif /* GPIO_H */
