@@ -8,11 +8,15 @@ target_include_directories(register_actions
 target_include_directories(
   gpio
   PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/gpio
-         ${CMAKE_CURRENT_SOURCE_DIR}/register_actions ${CMAKE_SOURCE_DIR}/hw
+         ${CMAKE_CURRENT_SOURCE_DIR}/register_actions
+         ${CMAKE_SOURCE_DIR}/hw
+         ${CMAKE_CURRENT_SOURCE_DIR}/global_defs
          ${CMAKE_SOURCE_DIR}/riscv_firmware_src)
 
 target_include_directories(
   upload_bitstream
   PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/upload_bitstream
-         ${CMAKE_CURRENT_SOURCE_DIR}/gpio ${CMAKE_CURRENT_SOURCE_DIR}/bitstream
-         ${CMAKE_SOURCE_DIR}/riscv_firmware_src)
+         ${CMAKE_CURRENT_SOURCE_DIR}/gpio
+         ${CMAKE_CURRENT_SOURCE_DIR}/bitstream
+         ${CMAKE_SOURCE_DIR}/riscv_firmware_src
+         ${CMAKE_CURRENT_SOURCE_DIR}/global_defs)
