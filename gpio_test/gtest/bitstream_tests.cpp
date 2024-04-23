@@ -47,7 +47,6 @@ template<typename T>
 void print_arg_history(std::vector<T> history)
 {
     std::cout << "History: " << std::endl;
-//#for (T elem : history)
     for (size_t i = 0; i < history.size(); i += 2)
     {
         std::cout <<  static_cast<int>(history[i]) << ", ";
@@ -65,8 +64,6 @@ TEST_F(BitStreamTestSuite, TestExampleBitstream)
     // Act
     upload_bitstream(bitstream, bitstream_size);
 
-    bool * history_pointer = set_or_clear_pin_fake.arg2_history;
-
     // Assert
     ASSERT_EQ(set_or_clear_gpio_fake.call_count, 64);
     ASSERT_EQ(set_gpio_fake.call_count, 32);
@@ -81,4 +78,7 @@ TEST_F(BitStreamTestSuite, TestBitstream)
 
     // Act
     upload_bitstream(bitstream, bitstream_size);
+
+    // Assert
+    // TODO: compare the produced bitstream with the bitstream produced by the python code
 }
