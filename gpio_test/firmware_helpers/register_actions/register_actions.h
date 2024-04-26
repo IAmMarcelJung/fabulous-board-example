@@ -42,8 +42,8 @@
 #define REGISTER_DATA_BIT_MSK(bit) (0x1 << (bit))
 #define REGISTER_DATA_BIT(bit) REGISTER_DATA_BIT_MSK(bit)
 
-void set_bit(uint8_t bit, volatile uint32_t * const reg);
-void clear_bit(uint8_t bit, volatile uint32_t * const reg);
-void set_or_clear_bit(uint8_t bit, volatile uint32_t * const reg, bool set);
+extern void set_bit(uint8_t bit, volatile uint32_t * const reg);
+extern void clear_bit(uint8_t bit, volatile uint32_t * const reg);
+extern void set_or_clear_bit(uint8_t bit, volatile uint32_t * const reg, bool set);
 
 #endif /* REGISTER_ACTIONS_H */
