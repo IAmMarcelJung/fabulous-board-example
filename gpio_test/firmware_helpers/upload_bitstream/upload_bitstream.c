@@ -1,5 +1,7 @@
 #include <global_defs.h>
+#include <defs.h>
 #include <upload_bitstream.h>
+#include <register_actions.h>
 
 #define PIN_SCLK GPIO_10
 #define PIN_SDATA GPIO_11
