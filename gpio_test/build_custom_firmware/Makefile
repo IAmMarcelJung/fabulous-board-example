@@ -13,6 +13,9 @@ check: gpio_config_def.py gpio_config_io.py gen_config_header
 %.bin: %.elf
 	$(TOOLCHAIN_PATH)$(TOOLCHAIN_PREFIX)-objcopy -O binary $< $@
 
+flash_caravel: custom_firmware.hex
+	python3 ../util/caravel_hkflash.py  $<
+
 flash_nucleo: gen_config_header custom_firmware.hex flash
 	@echo "Finished flashing nucleo."
 
