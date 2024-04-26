@@ -2,7 +2,7 @@
 #include <csr.h>
 #include "../nucleo_firmware/src/send_packet.h"
 #include "gpio_config_io.h"
-#include "gpio_config_data.h"
+#include <gpio_config_data.h>
 
 void delay(const int d)
 {
