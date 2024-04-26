@@ -9,6 +9,10 @@
 #define CTRL_WORD_DISABLE_BITBANG 0x0000FAB0u
 #define CTRL_WORD_ENABLE_BITBANG 0x0000FAB1u
 
+#define EXTRACT_BYTE_FROM_WORD(word, byte_index) (((word) >> (BITS_IN_BYTE * byte_index)) & 0xFFu)
+#define GET_BIT_AS_BOOL_FROM_BYTE(byte, index) ((bool)(((byte) >> (index)) & 0x01u))
+#define MODULO_4(data) data & 0x03u // Just using the last two bits is effectively modulo 4
+
 /**
  * @brief Use bitbanging to upload the bitstream to the FPGA.
  * @param bitstream_data The bitstream data to be transmitted to the FPGA.
