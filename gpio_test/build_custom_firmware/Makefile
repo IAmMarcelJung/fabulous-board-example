@@ -25,7 +25,9 @@ auto_check_and_flash: check_part F746ZG run get_config gen_config_header check f
 auto_flash: check_part gen_config_header flash_nucleo
 	@echo "Finished automatic checking and flashing."
 
+compile: hex
+
 clean::
 	rm -f *.hex *.bin *.vvp *.orig $(GPIO_CONFIG_DATA)
 
-.PHONY: clean hex all flash gen_config_header
+.PHONY: clean hex all flash gen_config_header compile
