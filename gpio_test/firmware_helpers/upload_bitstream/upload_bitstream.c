@@ -19,12 +19,15 @@
  * @param bitream_size The bitstream size in bytes.
  * @param ctrl_word The control word used to control the bitbang module.
  */
-
 void upload_bitstream(uint8_t const *const bitstream_data,
         uint32_t bitream_size)
 {
     for (uint32_t byte_pos = 0u; byte_pos < bitream_size; byte_pos++) {
-        for (uint32_t bit_pos = 0u; bit_pos < BITS_IN_BYTE; bit_pos++) {
+        reg_gpio_out = ~reg_gpio_out & 1u;
+        uint8_t current_byte = bitstream_data[byte_pos];
+        uint8_t control_word_byte_pos = ~MODULO_4(byte_pos); // Invert because we want to start from the most significant byte.
+        uint8_t current_control_word_byte = EXTRACT_BYTE_FROM_WORD(CTRL_WORD_ENABLE_BITBANG, control_word_byte_pos);
+        for (int32_t bit_pos = (int32_t)MSB_IN_BYTE; bit_pos >= 0; bit_pos--) {
             bool set;
             set = (bool)(bitstream_data[byte_pos] >> (MSB_IN_BYTE - bit_pos) & 1u);
             set_or_clear_pin(PIN_SDATA, set);
