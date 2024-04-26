@@ -1,3 +1,5 @@
+# Definition for the directory of this Makefile
+THIS_MAKEFILE_DIR := $(dir $(lastword $(MAKEFILE_LIST)))
 # Definitions used for device interaction
 FLASH := /pyboard/flash/
 DEV := $(shell mpremote connect list | grep STLink | cut -f 1 -d ' ')
@@ -5,31 +7,51 @@ COPY_CMD := rshell --port $(DEV) cp
 LS_CMD := rshell --port $(DEV) ls
 
 # Definitions related to firmware creation
-INCLUDES := -I$(shell pwd) -I../  -I../riscv_firmware_src/ -I./src/ -I../hw -I../gpio_config
+INCLUDES := \
+	-I../ \
+	-I../riscv_firmware_src/ \
+	-I./src/ \
+	-I../hw \
+	-I../gpio_config \
+	-I../firmware_helpers/upload_bitstream \
+	-I../firmware_helpers/gpio \
+	-I../firmware_helpers/bitstream \
+	-I../firmware_helpers/register_actions \
+	-I../firmware_helpers/global_defs
+
+SRC_FILES := \
+	$(THIS_MAKEFILE_DIR)/../riscv_firmware_src/crt0_vex.S \
+	$(THIS_MAKEFILE_DIR)/../riscv_firmware_src/isr.c \
+	$(THIS_MAKEFILE_DIR)/../gpio_config/gpio_config_io.c \
+	$(THIS_MAKEFILE_DIR)/src/send_packet.c \
+	$(THIS_MAKEFILE_DIR)/../firmware_helpers/upload_bitstream/upload_bitstream.c \
+	$(THIS_MAKEFILE_DIR)/../firmware_helpers/gpio/gpio.c \
+	$(THIS_MAKEFILE_DIR)/../firmware_helpers/register_actions/register_actions.c \
+
+
 TOOLCHAIN_PREFIX := riscv64-unknown-elf
 PATTERN ?= config_io_o
 
 # Definitions related to the GPIO config
-CONFIG_FILES_DIR := $(CWD)gpio_config_files
+CONFIG_FILES_DIR := $(THIS_MAKEFILE_DIR)gpio_config_files
 VOLTAGE_STR := $(subst .,_,$(VOLTAGE))
 CONFIG_FILE_PATTERN := gpio_config_def
 PART_OUTPUT_FILE := $(CONFIG_FILE_PATTERN)_part_$(PART)_$(VOLTAGE_STR)_V.py
 PART_OUTPUT_DIR := part_$(PART)
 CONFIG_FILE_TARGET = $(CONFIG_FILES_DIR)/$(PART_OUTPUT_DIR)/$(PART_OUTPUT_FILE)
-GPIO_CONFIG_DATA := $(CWD)../gpio_config/gpio_config_data.h
+GPIO_CONFIG_DATA := $(THIS_MAKEFILE_DIR)../gpio_config/gpio_config_data.h
 
 ifeq ($(wildcard ../nucleo_firmware/$(CONFIG_FILE_TARGET)), )
 	PREREQUISITES_IF_CONFIG_FILE_TARGET_EXISTS := $(CONFIG_FILE_TARGET)
 endif
 
 # Definitions related to python
-PYTHON_SRC := $(CWD)src/
+PYTHON_SRC := $(THIS_MAKEFILE_DIR)src/
 PYTHON_FILES := $(wildcard $(PYTHON_SRC)*.py)
 MPY_FILES := $(patsubst $(PYTHON_SRC)%.py,$(PYTHON_SRC)%.mpy,$(PYTHON_FILES))
 
 # General defintions
 SED_CMD :=sed -i'.orig' -e
-CWD := $(dir $(lastword $(MAKEFILE_LIST)))
 
 ifeq ($(strip $(DONT_STRIP_HEX_FILE)),)
 	STRIP = $(SED_CMD) '1,/@00/!d' $@
@@ -62,7 +84,7 @@ ifndef CONFIG_FILE
 	$(error CONFIG_FILE is undefined, please export it before running make flash)
 else
 	$(COPY_CMD) $(CONFIG_FILE) $(FLASH)$(CONFIG_FILE_PATTERN).py
-	$(COPY_CMD) $(CWD)config_io_o.hex $(FLASH)
+	$(COPY_CMD) $(THIS_MAKEFILE_DIR)config_io_o.hex $(FLASH)
 	sync
 	sleep 2
 	mpremote connect $(DEV) exec "import io_config; io_config.run_sanity_check()"
@@ -95,11 +117,11 @@ repl:
 
 # flash micropython firmware image.  this firmware image has been rebuilt to add pins for the Caravel Nucleo HAT
 F746ZG: compile
-	st-flash --connect-under-reset --format ihex write $(CWD)F746ZG_firmware.hex
+	st-flash --connect-under-reset --format ihex write $(THIS_MAKEFILE_DIR)F746ZG_firmware.hex
 	make F746ZG-copy
 
 F413ZH:
-	st-flash --connect-under-reset --format ihex write $(CWD)F413ZH_firmware.hex
+	st-flash --connect-under-reset --format ihex write $(THIS_MAKEFILE_DIR)F413ZH_firmware.hex
 	sleep 7
 	make F413ZH-copy
 
@@ -107,7 +129,7 @@ F413ZH:
 copy2 F746ZG-copy: compile check_device hex
 	$(COPY_CMD) $(filter-out $(PYTHON_SRC)main.mpy, $(wildcard $(PYTHON_SRC)*.mpy)) $(FLASH)
 	$(COPY_CMD) $(PYTHON_SRC)/main.py $(FLASH)
-	$(COPY_CMD) $(CWD)config_io_o.hex $(FLASH)
+	$(COPY_CMD) $(THIS_MAKEFILE_DIR)config_io_o.hex $(FLASH)
 	sync
 	$(LS_CMD) $(FLASH)
 	echo "File sytem usage"
@@ -116,7 +138,7 @@ copy2 F746ZG-copy: compile check_device hex
 copy3 F413ZH-copy: compile check_device hex
 	$(COPY_CMD) $(filter-out $(PYTHON_SRC)main.mpy, $(wildcard $(PYTHON_SRC)*.mpy)) $(FLASH)
 	$(COPY_CMD) $(PYTHON_SRC)main.py $(FLASH)
-	$(COPY_CMD) $(CWD)config_io_o.hex $(FLASH)
+	$(COPY_CMD) $(THIS_MAKEFILE_DIR)config_io_o.hex $(FLASH)
 	sync
 	$(LS_CMD)
 	echo "File sytem usage"
@@ -148,9 +170,9 @@ setup: check-python
 	python3 -m pip install mpremote
 
 copy_config_file: $(PREREQUISITES_IF_CONFIG_FILE_TARGET_EXISTS)
-	cp $(CWD)$(CONFIG_FILES_DIR)/$(PART_OUTPUT_DIR)/$(PART_OUTPUT_FILE) $(CONFIG_FILE_PATTERN).py
+	cp $(THIS_MAKEFILE_DIR)$(CONFIG_FILES_DIR)/$(PART_OUTPUT_DIR)/$(PART_OUTPUT_FILE) $(CONFIG_FILE_PATTERN).py
 
-$(CONFIG_FILE_TARGET): | run get_config $(CWD)$(CONFIG_FILES_DIR)/$(PART_OUTPUT_DIR)
+$(CONFIG_FILE_TARGET): | run get_config $(THIS_MAKEFILE_DIR)$(CONFIG_FILES_DIR)/$(PART_OUTPUT_DIR)
 
 $(CONFIG_FILES_DIR)/$(PART_OUTPUT_DIR):
 	mkdir -p $@
@@ -165,8 +187,9 @@ $(GPIO_CONFIG_DATA): check_part check_voltage gpio_config_io.py copy_config_file
 
 hex: $(GEN_CONFIG_HEADER_PREREQUISITE) $(PATTERN:=.hex)
 
-%.elf: %.c $(CWD)../riscv_firmware_src/sections.lds $(CWD)../riscv_firmware_src/crt0_vex.S
-	$(TOOLCHAIN_PATH)$(TOOLCHAIN_PREFIX)-gcc $(INCLUDES) -O0 -mabi=ilp32 -march=rv32i_zicsr -D__vexriscv__ -Wl,-Bstatic,-T,$(CWD)../riscv_firmware_src/sections.lds,--strip-debug -ffreestanding -nostdlib -o $@ $(CWD)../riscv_firmware_src/crt0_vex.S $(CWD)../riscv_firmware_src/isr.c  $(CWD)../gpio_config/gpio_config_io.c $(CWD)src/send_packet.c $<
+%.elf: %.c $(THIS_MAKEFILE_DIR)../riscv_firmware_src/sections.lds $(THIS_MAKEFILE_DIR)../riscv_firmware_src/crt0_vex.S
+	$(TOOLCHAIN_PATH)$(TOOLCHAIN_PREFIX)-gcc $(INCLUDES) -O3 -mabi=ilp32 -march=rv32i_zicsr -D__vexriscv__ -Wl,-Bstatic,-T,$(THIS_MAKEFILE_DIR)../riscv_firmware_src/sections.lds,--strip-debug -ffreestanding -nostdlib -o $@ $(SRC_FILES) $<
+	cp $@ firmware.elf
 
 %.hex: %.elf
 	$(TOOLCHAIN_PATH)$(TOOLCHAIN_PREFIX)-objcopy -O verilog $< $@
@@ -175,7 +198,7 @@ hex: $(GEN_CONFIG_HEADER_PREREQUISITE) $(PATTERN:=.hex)
 
 
 run_and_get_config: $(CONFIG_FILE_TARGET)
-	@echo "Executed GPIO test and stored config file to $(CWD)$(CONFIG_FILE_TARGET)"
+	@echo "Executed GPIO test and stored config file to $(THIS_MAKEFILE_DIR)$(CONFIG_FILE_TARGET)"
 
 clean::
 	rm -f *.elf $(PYTHON_SRC)*.mpy *.orig config_io_o.hex
