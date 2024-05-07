@@ -18,5 +18,7 @@ target_include_directories(
   PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/upload_bitstream
          ${CMAKE_CURRENT_SOURCE_DIR}/gpio
          ${CMAKE_CURRENT_SOURCE_DIR}/bitstream
+         ${CMAKE_CURRENT_SOURCE_DIR}/global_defs
          ${CMAKE_SOURCE_DIR}/riscv_firmware_src
-         ${CMAKE_CURRENT_SOURCE_DIR}/global_defs)
+         ${CMAKE_SOURCE_DIR}/hw
+         ${CMAKE_SOURCE_DIR}/gpio_config)
