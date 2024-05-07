@@ -1,5 +1,6 @@
 #include <gpio_mock.h>
 
+DEFINE_FAKE_VOID_FUNC(gpio_init, GPIO * const);
 DEFINE_FAKE_VOID_FUNC(set_gpio, uint8_t);
 DEFINE_FAKE_VOID_FUNC(clear_gpio, uint8_t);
 DEFINE_FAKE_VOID_FUNC(set_or_clear_gpio, uint8_t, bool);
@@ -23,6 +24,25 @@ void write_bit_to_file(uint8_t unused, bool set)
     }
 
     fprintf(fd, "%d", (uint8_t)set & 1u);
+
+    fclose(fd);
+}
+
+/**
+ * @brief Helper function to write a newline to a file.
+ * @param unused0 Unused value, just needed to have to correct signature.
+ */
+void write_newline_to_file(uint8_t unused0)
+{
+    FILE *fd;
+    fd = fopen("transmitted_data.txt", "a");
+
+    if (fd == NULL)
+    {
+        printf("Failed to open the file.\n");
+    }
+
+    fprintf(fd, "\n");
 
     fclose(fd);
 }
