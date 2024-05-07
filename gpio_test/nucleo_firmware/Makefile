@@ -1,5 +1,6 @@
 # Definition for the directory of this Makefile
 THIS_MAKEFILE_DIR := $(dir $(lastword $(MAKEFILE_LIST)))
+#
 # Definitions used for device interaction
 FLASH := /pyboard/flash/
 DEV := $(shell mpremote connect list | grep STLink | cut -f 1 -d ' ')
@@ -9,8 +10,8 @@ LS_CMD := rshell --port $(DEV) ls
 # Definitions related to firmware creation
 INCLUDES := \
 	-I../ \
-	-I../riscv_firmware_src/ \
-	-I./src/ \
+	-I../riscv_firmware_src \
+	-I./src \
 	-I../hw \
 	-I../gpio_config \
 	-I../firmware_helpers/upload_bitstream \
@@ -20,14 +21,14 @@ INCLUDES := \
 	-I../firmware_helpers/global_defs
 
 SRC_FILES := \
-	$(THIS_MAKEFILE_DIR)/../riscv_firmware_src/crt0_vex.S \
-	$(THIS_MAKEFILE_DIR)/../riscv_firmware_src/isr.c \
-	$(THIS_MAKEFILE_DIR)/../gpio_config/gpio_config_io.c \
-	$(THIS_MAKEFILE_DIR)/src/send_packet.c \
-	$(THIS_MAKEFILE_DIR)/../firmware_helpers/upload_bitstream/upload_bitstream.c \
-	$(THIS_MAKEFILE_DIR)/../firmware_helpers/gpio/gpio.c \
-	$(THIS_MAKEFILE_DIR)/../firmware_helpers/register_actions/register_actions.c \
-
+	$(THIS_MAKEFILE_DIR)../riscv_firmware_src/crt0_vex.S \
+	$(THIS_MAKEFILE_DIR)../riscv_firmware_src/isr.c \
+	$(THIS_MAKEFILE_DIR)../riscv_firmware_src/stub.c \
+	$(THIS_MAKEFILE_DIR)../gpio_config/gpio_config_io.c \
+	$(THIS_MAKEFILE_DIR)src/send_packet.c \
+	$(THIS_MAKEFILE_DIR)../firmware_helpers/upload_bitstream/upload_bitstream.c \
+	$(THIS_MAKEFILE_DIR)../firmware_helpers/gpio/gpio.c \
+	$(THIS_MAKEFILE_DIR)../firmware_helpers/register_actions/register_actions.c \
 
 TOOLCHAIN_PREFIX := riscv64-unknown-elf
 PATTERN ?= config_io_o
@@ -45,6 +46,7 @@ ifeq ($(wildcard ../nucleo_firmware/$(CONFIG_FILE_TARGET)), )
 	PREREQUISITES_IF_CONFIG_FILE_TARGET_EXISTS := $(CONFIG_FILE_TARGET)
 endif
 
+
 # Definitions related to python
 PYTHON_SRC := $(THIS_MAKEFILE_DIR)src/
 PYTHON_FILES := $(wildcard $(PYTHON_SRC)*.py)
@@ -52,6 +54,11 @@ MPY_FILES := $(patsubst $(PYTHON_SRC)%.py,$(PYTHON_SRC)%.mpy,$(PYTHON_FILES))
 
 # General defintions
 SED_CMD :=sed -i'.orig' -e
+
+# Color defintions
+GREEN := \033[32m
+RESET_COLOR := \033[0m
+
 
 ifeq ($(strip $(DONT_STRIP_HEX_FILE)),)
 	STRIP = $(SED_CMD) '1,/@00/!d' $@
@@ -180,25 +187,32 @@ $(CONFIG_FILES_DIR)/$(PART_OUTPUT_DIR):
 gen_config_header: $(GPIO_CONFIG_DATA)
 
 $(GPIO_CONFIG_DATA): check_part check_voltage gpio_config_io.py copy_config_file
+	@echo
+	@echo "Building configuration data."
 	python3 ../gpio_config/gpio_config_builder.py
 	mv gpio_config_data.h $(GPIO_CONFIG_DATA)
+	@echo "$(GREEN)Done building configuration data.$(RESET_COLOR)"
 
 .SUFFIXES:
 
-hex: $(GEN_CONFIG_HEADER_PREREQUISITE) $(PATTERN:=.hex)
+hex: $(PATTERN:=.hex)
 
-%.elf: %.c $(THIS_MAKEFILE_DIR)../riscv_firmware_src/sections.lds $(THIS_MAKEFILE_DIR)../riscv_firmware_src/crt0_vex.S
+%.elf: %.c $(THIS_MAKEFILE_DIR)../riscv_firmware_src/sections.lds $(THIS_MAKEFILE_DIR)../riscv_firmware_src/crt0_vex.S $(GEN_CONFIG_HEADER_PREREQUISITE)
+	@echo
+	@echo "Compiling firmware."
 	$(TOOLCHAIN_PATH)$(TOOLCHAIN_PREFIX)-gcc $(INCLUDES) -O3 -mabi=ilp32 -march=rv32i_zicsr -D__vexriscv__ -Wl,-Bstatic,-T,$(THIS_MAKEFILE_DIR)../riscv_firmware_src/sections.lds,--strip-debug -ffreestanding -nostdlib -o $@ $(SRC_FILES) $<
-	cp $@ firmware.elf
+	@echo "$(GREEN)Done compiling firmware.$(RESET_COLOR)"
 
 %.hex: %.elf
+	@echo "Converting $< to $@"
 	$(TOOLCHAIN_PATH)$(TOOLCHAIN_PREFIX)-objcopy -O verilog $< $@
 	$(SED_CMD) 's/@1000/@0000/g' $@
 	$(STRIP)
+	@echo "$(GREEN)Done converting $< to $@.$(RESET_COLOR)"
 
 
 run_and_get_config: $(CONFIG_FILE_TARGET)
-	@echo "Executed GPIO test and stored config file to $(THIS_MAKEFILE_DIR)$(CONFIG_FILE_TARGET)"
+	@echo "$(GREEN)Executed GPIO test and stored config file to $(THIS_MAKEFILE_DIR)$(CONFIG_FILE_TARGET).$(RESET_COLOR)"
 
 clean::
 	rm -f *.elf $(PYTHON_SRC)*.mpy *.orig config_io_o.hex
