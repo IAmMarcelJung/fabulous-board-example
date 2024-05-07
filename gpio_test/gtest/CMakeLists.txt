@@ -14,8 +14,6 @@ add_executable(
 
 add_custom_target(runTests DEPENDS bitstream_tests gpio_tests register_tests)
 
-add_compile_definitions(GTEST)
-
 target_include_directories(
   bitstream_tests
   PRIVATE ${PROJECT_SOURCE_DIR}/firmware_helpers/upload_bitstream
