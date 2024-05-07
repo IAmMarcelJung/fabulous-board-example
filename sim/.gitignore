@@ -15,3 +15,4 @@ cxxrtl_tb
 *.il
 *.gtkw
 nextpnr_log.txt
+.gtkwaverc
