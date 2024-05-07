@@ -2,8 +2,6 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 
-#include <vector>
-
 extern "C" {
 #include <register_actions.h>
 }
@@ -114,4 +112,48 @@ TEST_F(RegisterTestSuite, TestSetOrClearBitSetAllBits)
         // Assert
         ASSERT_EQ(test_reg, 1u << i);
     }
+}
+
+
+TEST_F(RegisterTestSuite, TestClearOnlyOneBit)
+{
+    // Arrange
+    uint32_t test_reg = 0xFFFFFFFFu;
+
+    // Act
+    clear_bit(REGISTER_31_DATA_BIT_POS, &test_reg);
+
+    // Assert
+    ASSERT_EQ(0x7FFFFFFFu, test_reg);
+}
+
+TEST_F(RegisterTestSuite, TestSequence)
+{
+
+    // Arrange
+    uint32_t test_reg = 0u;
+
+    // Act - set data register
+    set_bit(REGISTER_5_DATA_BIT_POS, &test_reg);
+
+    // Assert
+    ASSERT_EQ(1u << 5u, test_reg);
+
+    // Act - set clock register
+    set_bit(REGISTER_4_DATA_BIT_POS, &test_reg);
+
+    // Assert
+    ASSERT_EQ(3u << 4u, test_reg);
+
+    // Act - set data register
+    set_bit(REGISTER_5_DATA_BIT_POS, &test_reg);
+
+    // Assert
+    ASSERT_EQ(3u << 4u, test_reg);
+
+    // Act - clear clock register
+    clear_bit(REGISTER_4_DATA_BIT_POS, &test_reg);
+
+    // Assert
+    ASSERT_EQ(1u << 5u, test_reg);
 }
