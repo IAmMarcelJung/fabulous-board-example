@@ -13,8 +13,8 @@ C_USER_IN_NOPULL = 7
 C_USER_OUT = 8
 
 config_h = [
-    C_USER_BIDIR_WPD,  # 37
-    C_USER_BIDIR_WPD,  # 36
+    C_MGMT_OUT,  # 37
+    C_MGMT_OUT,  # 36
     C_USER_BIDIR_WPD,  # 35
     C_USER_BIDIR_WPD,  # 34
     C_USER_BIDIR_WPD,  # 33
@@ -38,12 +38,12 @@ del config_h[NUM_IO:]
 
 config_l = [
     C_DISABLE,  # 0
-    C_DISABLE,  # 1
-    C_DISABLE,  # 2
-    C_DISABLE,  # 3
-    C_DISABLE,  # 4
-    C_DISABLE,  # 5
-    C_DISABLE,  # 6
+    C_MGMT_OUT,  # 1
+    C_MGMT_IN,  # 2
+    C_MGMT_IN,  # 3
+    C_MGMT_IN,  # 4
+    C_MGMT_IN,  # 5
+    C_MGMT_OUT,  # 6
     C_USER_BIDIR_WPD,  # 7
     C_USER_BIDIR_WPD,  # 8
     C_USER_BIDIR_WPD,  # 9
