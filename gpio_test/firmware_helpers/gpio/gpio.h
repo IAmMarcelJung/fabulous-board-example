@@ -45,7 +45,12 @@
 #define GPIO_37 37u
 
 #define NUM_OF_GPIOS 38u
+typedef struct {
+    volatile uint32_t *datal_reg_pointer;
+    volatile uint32_t *datah_reg_pointer;
+} GPIO;
 
+void gpio_init(GPIO * const gpio);
 void set_gpio(uint8_t pin);
 void clear_gpio(uint8_t pin);
 void set_or_clear_gpio(uint8_t pin, bool set);
