@@ -197,7 +197,7 @@ $(GPIO_CONFIG_DATA): check_part check_voltage gpio_config_io.py copy_config_file
 
 hex: $(PATTERN:=.hex)
 
-%.elf: %.c $(THIS_MAKEFILE_DIR)../riscv_firmware_src/sections.lds $(THIS_MAKEFILE_DIR)../riscv_firmware_src/crt0_vex.S $(GEN_CONFIG_HEADER_PREREQUISITE)
+%.elf: %.c $(BITSTREAM_HEADER) $(THIS_MAKEFILE_DIR)../riscv_firmware_src/sections.lds $(THIS_MAKEFILE_DIR)../riscv_firmware_src/crt0_vex.S $(GEN_CONFIG_HEADER_PREREQUISITE)
 	@echo
 	@echo "Compiling firmware."
 	$(TOOLCHAIN_PATH)$(TOOLCHAIN_PREFIX)-gcc $(INCLUDES) -O3 -mabi=ilp32 -march=rv32i_zicsr -D__vexriscv__ -Wl,-Bstatic,-T,$(THIS_MAKEFILE_DIR)../riscv_firmware_src/sections.lds,--strip-debug -ffreestanding -nostdlib -o $@ $(SRC_FILES) $<
