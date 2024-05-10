@@ -15,7 +15,7 @@ C_USER_OUT = 8
 config_h = [
     C_MGMT_OUT,  # 37
     C_MGMT_OUT,  # 36
-    C_USER_BIDIR_WPD,  # 35
+    C_MGMT_OUT,  # 35
     C_USER_BIDIR_WPD,  # 34
     C_USER_BIDIR_WPD,  # 33
     C_USER_BIDIR_WPD,  # 32
