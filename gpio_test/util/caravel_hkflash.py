@@ -271,10 +271,10 @@ class MyFtdi(Ftdi):
             if name == "(Single RS232-HS)":
                 ftdi_devices.append(url)
         if len(ftdi_devices) == 0:
-            print("Error:  No matching FTDI devices on USB bus!")
+            print("Error: No matching FTDI devices on USB bus!")
             sys.exit(1)
         elif len(ftdi_devices) > 1:
-            print("Error:  Too many matching FTDI devices on USB bus!")
+            print("Error: Too many matching FTDI devices on USB bus!")
             self.show_devices()
             sys.exit(1)
         else:
