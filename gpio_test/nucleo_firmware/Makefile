@@ -57,6 +57,7 @@ SED_CMD :=sed -i'.orig' -e
 
 # Color defintions
 GREEN := \033[32m
+RED := \033[31m
 RESET_COLOR := \033[0m
 
 
