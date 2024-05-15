@@ -88,13 +88,10 @@ class Memory:
         """Erase the flash memory
         :param stop_event: The stop event to set when erasing is done.
         """
-        print(" ")
-        print("Resetting Flash...")
+        print("\nResetting Flash...")
         self.slave.write([CARAVEL_PASSTHRU, CMD_RESET_CHIP])
 
-        print("status = 0x{:02x}".format(self.get_status(), "02x"))
-
-        print(" ")
+        print("status = 0x{:02x}\n".format(self.get_status(), "02x"))
 
         jedec = self.slave.exchange([CARAVEL_PASSTHRU, CMD_JEDEC_DATA], 3)
         print("JEDEC = {}".format(binascii.hexlify(jedec)))
@@ -239,7 +236,7 @@ class MyFtdi(Ftdi):
 
         product = self.slave.exchange([CARAVEL_REG_READ, 0x03], 1)
         print(
-            "   Product ID      = {:02x}".format(
+            "   Product ID      = {:02x}\n".format(
                 int.from_bytes(product, byteorder="big")
             )
         )
