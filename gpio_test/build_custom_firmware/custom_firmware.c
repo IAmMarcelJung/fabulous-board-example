@@ -79,7 +79,7 @@ void set_registers() {
     reg_mprj_io_33 = GPIO_MODE_USER_STD_BIDIRECTIONAL;
     reg_mprj_io_33 = GPIO_MODE_USER_STD_BIDIRECTIONAL;
     reg_mprj_io_34 = GPIO_MODE_USER_STD_BIDIRECTIONAL;
-    reg_mprj_io_35 = GPIO_MODE_USER_STD_BIDIRECTIONAL;
+    reg_mprj_io_35 = GPIO_MODE_MGMT_STD_OUTPUT;
     reg_mprj_io_36 = GPIO_MODE_MGMT_STD_OUTPUT;
     reg_mprj_io_37 = GPIO_MODE_MGMT_STD_OUTPUT;
 
@@ -95,16 +95,14 @@ int main() {
 
     blink(5, 5000000);
     reg_gpio_out = 1;
-    //set_registers();
+    set_registers();
     gpio_config_io();
     blink(3, 10000000);
 
     print("A");
-    delay(50000);
     delay(500000);
     print("A");
     blink(5, 5000000);
-
     reg_gpio_out = 1;
 
     GPIO gpio;
@@ -117,6 +115,7 @@ int main() {
 
     blink(5, 5000000);
     reg_gpio_out = 0;
+    while(1);
 
     return 0;
 }
