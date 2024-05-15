@@ -111,15 +111,8 @@ int main() {
     gpio.datah_reg_pointer = &reg_mprj_datah;
     gpio.datal_reg_pointer = &reg_mprj_datal;
 
-    uint8_t bitstream_preamble[128];
-    for(uint8_t byte = 0u; byte < PREAMBLE_SIZE; byte++)
-    {
-        bitstream_preamble[byte] = 0xFF;
-    }
-
     bitstream_init(&gpio);
 
-    upload_bitstream((uint8_t *)&bitstream_preamble, sizeof(bitstream_preamble)/sizeof(uint8_t));
     upload_bitstream((uint8_t *)&bitstream, sizeof(bitstream)/sizeof(uint8_t));
 
     blink(5, 5000000);
