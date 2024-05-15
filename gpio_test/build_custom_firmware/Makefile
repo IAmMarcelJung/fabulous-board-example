@@ -40,10 +40,15 @@ auto_flash: check_part gen_config_header flash_nucleo
 	@echo "$(GREEN)Finished automatic checking and flashing.$(RESET_COLOR)"
 
 $(BITSTREAM_HEADER):
+ifeq ("$(wildcard $(BITSTREAM_FILE))", "")
+	@echo "$(RED)Bitstream file $(BITSTREAM_FILE) does not exist. Please create it using FABulous and move it to the correct location or use a symlink.$(RESET_COLOR)"
+	exit 1
+else
 	@echo
 	@echo "Convert bitstream from binary to header file"
 	$(BITSTREAM_CONVERSION_COMMAND) -o ../firmware_helpers/bitstream/bitstream.h -n bitstream ../../output_files/bitstream.bin
 	@echo "$(GREEN)Done converting bitstream from binary to header file.$(RESET_COLOR)"
+endif
 
 compile: hex
 
