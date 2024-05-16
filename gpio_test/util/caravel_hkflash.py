@@ -70,22 +70,22 @@ class Led:
         self.gpio
         self.led = False
 
-    def toggle(self):
+    async def toggle(self, delay: float):
         """Toggle the led once."""
         self.led = not self.led
         output = 0b000100000000 | int(self.led) << 11
         if self.gpio:
             self.gpio.write(output)
-            time.sleep(0.2)
+            await asyncio.sleep(delay)
 
-    async def toggle_until_stop_event(self, stop_event: Event):
+    async def toggle_until_stop_event(self, delay: float, stop_event: Event):
         """Toggle the led until the stop event is set.
 
         :param stop_event: The stop event for which to check.
         :type stop_event: Event
         """
         while not stop_event.is_set():
-            await asyncio.to_thread(self.toggle)
+            await self.toggle(delay)
 
 
 class Memory:
@@ -99,7 +99,7 @@ class Memory:
         """Erase the flash memory
         :param stop_event: The stop event to set when erasing is done.
         """
-        print("\nResetting Flash...")
+        print("Resetting Flash...")
         self.slave.write([CARAVEL_PASSTHRU, CMD_RESET_CHIP])
 
         print(f"status = 0x{self.get_status():02x}\n")
@@ -109,6 +109,7 @@ class Memory:
 
         if jedec[0:1] != bytes.fromhex("ef"):
             print("Winbond flash not found")
+            stop_event.set()
             sys.exit()
 
         print("Erasing chip...")
@@ -132,7 +133,7 @@ class Memory:
             byteorder="big",
         )
 
-    def mem_action(self, file_path, write):
+    async def mem_action(self, file_path, write, stop_event):
         if not write:
             print("************************************")
             print("Verifying...")
@@ -157,7 +158,7 @@ class Memory:
 
                 if nbytes >= 256 or (x != "" and x[0] == "@" and nbytes > 0):
                     total_bytes += nbytes
-                    self.__transfer_sequence(write, nbytes, buf, addr)
+                    await self.__transfer_sequence(write, nbytes, buf, addr)
 
                     if nbytes > 256:
                         buf = buf[255:]
@@ -171,12 +172,15 @@ class Memory:
 
             if nbytes > 0:
                 total_bytes += nbytes
-                self.__transfer_sequence(write, nbytes, buf, addr)
+                await self.__transfer_sequence(write, nbytes, buf, addr)
 
         print(f"\ntotal_bytes = {total_bytes}")
+        stop_event.set()
 
-    def __read_actions(self, read_cmd, nbytes, buf, addr):
+    async def __read_actions(self, read_cmd, nbytes, buf, addr):
         buf2 = self.slave.exchange(read_cmd, nbytes)
+        while self.is_busy():
+            await asyncio.sleep(0.1)
         if buf == buf2:
             print(f"addr {hex(addr)}: read compare successful")
         else:
@@ -185,15 +189,15 @@ class Memory:
             print("<----->")
             print(binascii.hexlify(buf2))
 
-    def __write_actions(self, wcmd, buf, addr):
+    async def __write_actions(self, wcmd, buf, addr):
         wcmd.extend(buf)
         self.slave.exchange(wcmd)
         while self.is_busy():
-            time.sleep(0.1)
+            await asyncio.sleep(0.1)
 
         print(f"addr {hex(addr)}: flash page write successful")
 
-    def __transfer_sequence(self, write, nbytes, buf, addr):
+    async def __transfer_sequence(self, write, nbytes, buf, addr):
         if write:
             self.slave.write([CARAVEL_PASSTHRU, CMD_WRITE_ENABLE])
             memory_command = CMD_PROGRAM_PAGE
@@ -210,9 +214,9 @@ class Memory:
             )
         )
         if write:
-            self.__write_actions(cmd, buf, addr)
+            await self.__write_actions(cmd, buf, addr)
         else:
-            self.__read_actions(cmd, nbytes, buf, addr)
+            await self.__read_actions(cmd, nbytes, buf, addr)
 
 
 class MyFtdi(Ftdi):
@@ -310,27 +314,38 @@ def get_file_path_from_args(args: list[str]):
     return file_path
 
 
+async def toggle_led_during_ftdi_action(action, ftdi: MyFtdi, delay: float, *args):
+    stop_event = asyncio.Event()
+
+    toggle_task = asyncio.create_task(
+        ftdi.led.toggle_until_stop_event(delay, stop_event)
+    )
+    action_task = asyncio.create_task(action(*args, stop_event))
+    await toggle_task
+    await action_task
+
+
 async def main():
     file_path = get_file_path_from_args(sys.argv)
 
     ftdi = MyFtdi()
-    ftdi.led.toggle()
     ftdi.enable_cpu_reset()
     ftdi.print_manufacturer_and_product_id()
     ftdi.check_manufacturer_id()
+    await toggle_led_during_ftdi_action(ftdi.memory.erase, ftdi, 0.5)
 
-    stop_event = asyncio.Event()
-    toggle_task = asyncio.create_task(ftdi.led.toggle_until_stop_event(stop_event))
-    erase_task = asyncio.create_task(ftdi.memory.erase(stop_event))
-    await toggle_task
-    await erase_task
+    await toggle_led_during_ftdi_action(
+        ftdi.memory.mem_action, ftdi, 0.025, file_path, FIRMWARE_WRITE
+    )
 
-    ftdi.memory.mem_action(file_path, FIRMWARE_WRITE)
-
+    # This won't take long and might not even loop once but should still be there to be sure.
     while ftdi.memory.is_busy():
         time.sleep(0.5)
 
-    ftdi.memory.mem_action(file_path, FIRMWARE_VERIFY)
+    # This will finish almost instantly, no need to toggle the LED.
+    stop_event = asyncio.Event()
+    await ftdi.memory.mem_action(file_path, FIRMWARE_VERIFY, stop_event)
+
     ftdi.disable_cpu_reset()
     ftdi.spi.terminate()
 
