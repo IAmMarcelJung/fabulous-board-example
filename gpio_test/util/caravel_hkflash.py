@@ -176,41 +176,23 @@ class Memory:
             print("************************************")
             print("Verifying...")
             print("************************************")
-        buf = bytearray()
+
         addr = 0
-        nbytes = 0
         total_bytes = 0
 
         with open(file_path, mode="r") as f:
-            x = f.readline()
-            while x != "":
-                if x[0] == "@":
-                    addr = int(x[1:], 16)
+            for line in f:
+                if line.startswith("@"):
+                    addr = int(line[1:], 16)
                     print(f"setting address to {hex(addr)}")
                 else:
-                    values = bytearray.fromhex(x[0 : len(x) - 1])
-                    buf[nbytes:nbytes] = values
-                    nbytes += len(values)
-
-                x = f.readline()
-
-                if nbytes >= 256 or (x != "" and x[0] == "@" and nbytes > 0):
+                    values = bytearray.fromhex(line.rstrip())
+                    nbytes = len(values)
                     total_bytes += nbytes
-                    await self.__transfer_sequence(write, nbytes, buf, addr)
-
+                    await self.__transfer_sequence(write, nbytes, values, addr)
                     if nbytes > 256:
-                        buf = buf[255:]
-                        addr += 256
-                        nbytes -= 256
                         print("*** over 256 hit")
-                    else:
-                        buf = bytearray()
-                        addr += 256
-                        nbytes = 0
-
-            if nbytes > 0:
-                total_bytes += nbytes
-                await self.__transfer_sequence(write, nbytes, buf, addr)
+                    addr += nbytes
 
         print(f"\ntotal_bytes = {total_bytes}")
         stop_event.set()
@@ -265,7 +247,7 @@ class Memory:
         :type write: int
         :param buf: The buffer to be transferred.
         :type buf: bytearray
-        :param addr: The address where to write the buffer.
+        :param addr: The address where to access the data.
         :type buf: int
         """
         if write:
