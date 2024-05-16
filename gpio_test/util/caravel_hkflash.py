@@ -54,6 +54,9 @@ CARAVEL_STREAM_WRITE = 0x80
 CARAVEL_REG_READ = 0x48
 CARAVEL_REG_WRITE = 0x88
 
+FIRMWARE_WRITE = True
+FIRMWARE_VERIFY = False
+
 
 class Led:
     """Class definition for the LED connected to the FTDI chip.
@@ -321,12 +324,12 @@ async def main():
     await toggle_task
     await erase_task
 
-    ftdi.memory.mem_action(file_path, True)
+    ftdi.memory.mem_action(file_path, FIRMWARE_WRITE)
 
     while ftdi.memory.is_busy():
         time.sleep(0.5)
 
-    ftdi.memory.mem_action(file_path, False)
+    ftdi.memory.mem_action(file_path, FIRMWARE_VERIFY)
     ftdi.disable_cpu_reset()
     ftdi.spi.terminate()
 
