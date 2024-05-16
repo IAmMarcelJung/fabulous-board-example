@@ -290,10 +290,11 @@ class MyFtdi(Ftdi):
         return Led(gpio)
 
 
-def get_file_path_from_args(args):
+def get_file_path_from_args(args: list[str]):
     """Gets the file path from the given command line arguments.
 
     :param args: The given command line arguments.
+    :type args: list[str]
     :returns: The file path.
     :rtype: str
     """
