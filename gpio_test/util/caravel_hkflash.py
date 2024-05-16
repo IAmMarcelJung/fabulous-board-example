@@ -99,10 +99,10 @@ class Memory:
         print("\nResetting Flash...")
         self.slave.write([CARAVEL_PASSTHRU, CMD_RESET_CHIP])
 
-        print("status = 0x{:02x}\n".format(self.get_status(), "02x"))
+        print(f"status = 0x{self.get_status():02x}\n")
 
         jedec = self.slave.exchange([CARAVEL_PASSTHRU, CMD_JEDEC_DATA], 3)
-        print("JEDEC = {}".format(binascii.hexlify(jedec)))
+        print(f"JEDEC = {binascii.hexlify(jedec)}")
 
         if jedec[0:1] != bytes.fromhex("ef"):
             print("Winbond flash not found")
@@ -116,7 +116,7 @@ class Memory:
             await asyncio.sleep(0.1)
 
         print("done")
-        print("status = {}".format(hex(self.get_status())))
+        print(f"status = {hex(self.get_status())}")
         stop_event.set()
 
     def is_busy(self):
@@ -236,18 +236,12 @@ class MyFtdi(Ftdi):
         print(" ")
         print("Caravel data:")
         self.mfg_id = self.slave.exchange([CARAVEL_STREAM_READ, 0x01], 2)
-        print(
-            "   Manufacturer ID = {:04x}".format(
-                int.from_bytes(self.mfg_id, byteorder="big")
-            )
-        )
+        mfg_id_int = int.from_bytes(self.mfg_id, byteorder="big")
+        print(f"   Manufacturer ID = {mfg_id_int:04x}")
 
         product = self.slave.exchange([CARAVEL_REG_READ, 0x03], 1)
-        print(
-            "   Product ID      = {:02x}\n".format(
-                int.from_bytes(product, byteorder="big")
-            )
-        )
+        product_int = int.from_bytes(product, byteorder="big")
+        print(f"   Product ID      = {product_int:02x}\n")
 
     def check_manufacturer_id(self):
         mfg_int = int.from_bytes(self.mfg_id, byteorder="big")
