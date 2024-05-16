@@ -1,6 +1,8 @@
+
 # Definition for the directory of this Makefile
 THIS_MAKEFILE_DIR := $(dir $(lastword $(MAKEFILE_LIST)))
 #
+
 # Definitions used for device interaction
 FLASH := /pyboard/flash/
 DEV := $(shell mpremote connect list | grep STLink | cut -f 1 -d ' ')
@@ -34,21 +36,25 @@ TOOLCHAIN_PREFIX := riscv64-unknown-elf
 PATTERN ?= config_io_o
 
 # Definitions related to the GPIO config
+
 CONFIG_FILES_DIR := $(THIS_MAKEFILE_DIR)gpio_config_files
+
 VOLTAGE_STR := $(subst .,_,$(VOLTAGE))
 CONFIG_FILE_PATTERN := gpio_config_def
 PART_OUTPUT_FILE := $(CONFIG_FILE_PATTERN)_part_$(PART)_$(VOLTAGE_STR)_V.py
 PART_OUTPUT_DIR := part_$(PART)
 CONFIG_FILE_TARGET = $(CONFIG_FILES_DIR)/$(PART_OUTPUT_DIR)/$(PART_OUTPUT_FILE)
+
 GPIO_CONFIG_DATA := $(THIS_MAKEFILE_DIR)../gpio_config/gpio_config_data.h
+
 
 ifeq ($(wildcard ../nucleo_firmware/$(CONFIG_FILE_TARGET)), )
 	PREREQUISITES_IF_CONFIG_FILE_TARGET_EXISTS := $(CONFIG_FILE_TARGET)
 endif
 
-
 # Definitions related to python
 PYTHON_SRC := $(THIS_MAKEFILE_DIR)src/
+
 PYTHON_FILES := $(wildcard $(PYTHON_SRC)*.py)
 MPY_FILES := $(patsubst $(PYTHON_SRC)%.py,$(PYTHON_SRC)%.mpy,$(PYTHON_FILES))
 
@@ -59,7 +65,6 @@ SED_CMD :=sed -i'.orig' -e
 GREEN := \033[32m
 RED := \033[31m
 RESET_COLOR := \033[0m
-
 
 ifeq ($(strip $(DONT_STRIP_HEX_FILE)),)
 	STRIP = $(SED_CMD) '1,/@00/!d' $@
