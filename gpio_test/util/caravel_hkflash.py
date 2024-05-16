@@ -8,6 +8,7 @@ import binascii
 import asyncio
 from asyncio import Event
 from io import StringIO
+from typing import Callable, Any, Coroutine, Tuple
 
 
 SR_WIP = 0b00000001  # Busy/Work-in-progress bit
@@ -59,19 +60,24 @@ FIRMWARE_VERIFY = False
 
 
 class Led:
-    """Class definition for the LED connected to the FTDI chip.
+    """Class definition for the LED connected to the FTDI chip."""
 
-    :param gpio: The GPIO connected to the LED.
-    :type gpio: SpiGpioPort
-    """
+    def __init__(self, gpio: SpiGpioPort) -> None:
+        """Initialize an Led object.
+        :param gpio: The GPIO connected to the LED.
+        :type gpio: SpiGpioPort
+        """
 
-    def __init__(self, gpio: SpiGpioPort):
         self.gpio = gpio
         self.gpio
         self.led = False
 
     async def toggle(self, delay: float):
-        """Toggle the led once."""
+        """Toggle the led once and wait for the specified delay.
+
+        :param delay: The delay in seconds to wait after toggling the LED.
+        :type delay: float
+        """
         self.led = not self.led
         output = 0b000100000000 | int(self.led) << 11
         if self.gpio:
@@ -89,14 +95,23 @@ class Led:
 
 
 class Memory:
-    def __init__(self, slave):
+    """Class defintion for interacting with the memory."""
+
+    def __init__(self, slave) -> None:
+        """Initialize a Memory object."""
         self.slave = slave
 
-    def write_passthrough_command(self, command_id):
+    def write_passthrough_command(self, command_id: int) -> None:
+        """Write the command in passthrough mode to the HKSPI.
+
+        :param command_id: The ID of the command.
+        :type command_id: int
+        """
         self.slave.write([CARAVEL_PASSTHRU, command_id])
 
-    async def erase(self, stop_event):
-        """Erase the flash memory
+    async def erase(self, stop_event) -> None:
+        """Erase the flash memory.
+
         :param stop_event: The stop event to set when erasing is done.
         """
         print("Resetting Flash...")
@@ -123,17 +138,40 @@ class Memory:
         print(f"status = {hex(self.get_status())}")
         stop_event.set()
 
-    def is_busy(self):
-        """Get if the memory is busy."""
-        return self.get_status() & SR_WIP
+    def is_busy(self) -> bool:
+        """Check if the memory is busy.
 
-    def get_status(self):
+        :returns: True if the memory is busy, else False.
+        :rtype: bool
+        """
+        return bool(self.get_status() & SR_WIP)
+
+    def get_status(self) -> int:
+        """Get the memory status.
+
+        :returns: The memory status.
+        :rtype: int
+        """
         return int.from_bytes(
             self.slave.exchange([CARAVEL_PASSTHRU, CMD_READ_STATUS], 1),
             byteorder="big",
         )
 
-    async def mem_action(self, file_path, write, stop_event):
+    async def firmware_action(
+        self, file_path: str, write: bool, stop_event: Event
+    ) -> None:
+        """Executes a memory action depending on the write flag.
+        If the write flag is set, the firmware will be written into memory.
+        Else the memory content will be compared to the firmware file.
+
+        :param file_path: The path to the firmware file.
+        :type file_path: str
+        :param write: A flag
+        :type file_path: str
+        :param stop_event: The stop event to set when the action is done.
+        :type stop_event: Event
+
+        """
         if not write:
             print("************************************")
             print("Verifying...")
@@ -177,8 +215,22 @@ class Memory:
         print(f"\ntotal_bytes = {total_bytes}")
         stop_event.set()
 
-    async def __read_actions(self, read_cmd, nbytes, buf, addr):
-        buf2 = self.slave.exchange(read_cmd, nbytes)
+    async def __compare_buffers(
+        self, rcmd: bytearray, nbytes: int, buf: bytearray, addr: int
+    ) -> None:
+        """Compare the given buffer the buffer read from the memory.
+
+        :param rcmd: The read command to be executed for the transfer.
+        :type rcmd: bytearray
+        :param nbytes: The number of bytes to be read.
+        :type nbytes: int
+        :param buf: The buffer to compare to the buffer read.
+        :type nbytes: int
+        :param addr: The addr at which the buffers are compared.
+        :type addr: int
+
+        """
+        buf2 = self.slave.exchange(rcmd, nbytes)
         while self.is_busy():
             await asyncio.sleep(0.1)
         if buf == buf2:
@@ -189,7 +241,12 @@ class Memory:
             print("<----->")
             print(binascii.hexlify(buf2))
 
-    async def __write_actions(self, wcmd, buf, addr):
+    async def __write_actions(self, wcmd, buf, addr) -> None:
+        """The action to execute for a write transfer.
+
+        :param wcmd: The write command to be executed for the transfer.
+        :param addr: The address where the buffer will be written.
+        """
         wcmd.extend(buf)
         self.slave.exchange(wcmd)
         while self.is_busy():
@@ -197,7 +254,20 @@ class Memory:
 
         print(f"addr {hex(addr)}: flash page write successful")
 
-    async def __transfer_sequence(self, write, nbytes, buf, addr):
+    async def __transfer_sequence(
+        self, write: bool, nbytes: int, buf: bytearray, addr: int
+    ) -> None:
+        """Defines the sequence to transfer data. Depending on the write flag it can be read or write.
+
+        :param write: A flag to signalize whether the transfer should be read or write.
+        :type write: bool
+        :param nbytes: The number of bytes to transfer.
+        :type write: int
+        :param buf: The buffer to be transferred.
+        :type buf: bytearray
+        :param addr: The address where to write the buffer.
+        :type buf: int
+        """
         if write:
             self.slave.write([CARAVEL_PASSTHRU, CMD_WRITE_ENABLE])
             memory_command = CMD_PROGRAM_PAGE
@@ -216,11 +286,14 @@ class Memory:
         if write:
             await self.__write_actions(cmd, buf, addr)
         else:
-            await self.__read_actions(cmd, nbytes, buf, addr)
+            await self.__compare_buffers(cmd, nbytes, buf, addr)
 
 
 class MyFtdi(Ftdi):
-    def __init__(self):
+    """Represents the FTDI object, inherits from the Ftdi class defined in pyftdi."""
+
+    def __init__(self) -> None:
+        """Initialize a MyFtdi object."""
         super().__init__()
         self.device = self.__read_device_url()
         self.spi = SpiController(cs_count=2)
@@ -230,15 +303,15 @@ class MyFtdi(Ftdi):
         self.memory = Memory(self.slave)
         self.mfg_id = bytes(0)
 
-    def enable_cpu_reset(self):
+    def enable_cpu_reset(self) -> None:
         """Reset the CPU over an SPI command."""
         self.slave.write([CARAVEL_REG_WRITE, 0x0B, 0x01])
 
-    def disable_cpu_reset(self):
+    def disable_cpu_reset(self) -> None:
         """Reset the CPU over an SPI command."""
         self.slave.write([CARAVEL_REG_WRITE, 0x0B, 0x00])
 
-    def print_manufacturer_and_product_id(self):
+    def print_manufacturer_and_product_id(self) -> None:
         """Print the manufacturer and product ID."""
         print(" ")
         print("Caravel data:")
@@ -250,7 +323,8 @@ class MyFtdi(Ftdi):
         product_int = int.from_bytes(product, byteorder="big")
         print(f"   Product ID      = {product_int:02x}\n")
 
-    def check_manufacturer_id(self):
+    def check_manufacturer_id(self) -> None:
+        """Check the manufacturer ID of the chip."""
         mfg_int = int.from_bytes(self.mfg_id, byteorder="big")
         if mfg_int != 0x0456:
             print(
@@ -261,7 +335,7 @@ class MyFtdi(Ftdi):
             )
             exit(2)
 
-    def __read_device_url(self):
+    def __read_device_url(self) -> str:
         """Sets the URL of the connected FTDI device.
         :returns: The device URL of the connected FTDI device.
         :rtype: str
@@ -287,14 +361,18 @@ class MyFtdi(Ftdi):
             print("Success: Found one matching FTDI device at " + ftdi_devices[0])
         return ftdi_devices[0]
 
-    def __assign_led_to_gpio(self):
-        """Assign the led to the correct gpio."""
+    def __assign_led_to_gpio(self) -> Led:
+        """Assign the LED to the correct GPIO.
+        :returns: The LED associatied to the GPIO.
+        :rtype: Led
+        """
+
         gpio = self.spi.get_gpio()
         gpio.set_direction(0b110100000000, 0b110100000000)  # (mask, dir)
         return Led(gpio)
 
 
-def get_file_path_from_args(args: list[str]):
+def get_file_path_from_args(args: list[str]) -> str:
     """Gets the file path from the given command line arguments.
 
     :param args: The given command line arguments.
@@ -314,7 +392,23 @@ def get_file_path_from_args(args: list[str]):
     return file_path
 
 
-async def toggle_led_during_ftdi_action(action, ftdi: MyFtdi, delay: float, *args):
+async def toggle_led_during_ftdi_action(
+    action: Callable[..., Coroutine[Any, Any, None]],
+    ftdi: MyFtdi,
+    delay: float,
+    *args: Any,
+) -> None:
+    """Toggle the FTDI LED when an FTDI action is in progress.
+
+    :param action: The action to be executed.
+    :type action: Callable[..., Coroutine[Any, Any, None]]
+    :param ftdi: The ftdi device to perform the action on.
+    :type ftdi: MyFtdi
+    :param delay: The delay to use for the LED toggling.
+    :type delay: float
+    :param args: Any number of positional arugments
+    :type args: Any
+    """
     stop_event = asyncio.Event()
 
     toggle_task = asyncio.create_task(
@@ -325,7 +419,8 @@ async def toggle_led_during_ftdi_action(action, ftdi: MyFtdi, delay: float, *arg
     await action_task
 
 
-async def main():
+async def main() -> None:
+    """The main function of this module"""
     file_path = get_file_path_from_args(sys.argv)
 
     ftdi = MyFtdi()
@@ -335,7 +430,7 @@ async def main():
     await toggle_led_during_ftdi_action(ftdi.memory.erase, ftdi, 0.5)
 
     await toggle_led_during_ftdi_action(
-        ftdi.memory.mem_action, ftdi, 0.025, file_path, FIRMWARE_WRITE
+        ftdi.memory.firmware_action, ftdi, 0.025, file_path, FIRMWARE_WRITE
     )
 
     # This won't take long and might not even loop once but should still be there to be sure.
@@ -344,7 +439,7 @@ async def main():
 
     # This will finish almost instantly, no need to toggle the LED.
     stop_event = asyncio.Event()
-    await ftdi.memory.mem_action(file_path, FIRMWARE_VERIFY, stop_event)
+    await ftdi.memory.firmware_action(file_path, FIRMWARE_VERIFY, stop_event)
 
     ftdi.disable_cpu_reset()
     ftdi.spi.terminate()
