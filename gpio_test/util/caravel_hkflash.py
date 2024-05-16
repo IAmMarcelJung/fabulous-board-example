@@ -3,9 +3,10 @@
 from pyftdi.ftdi import Ftdi
 import time
 import sys, os
-from pyftdi.spi import SpiController
+from pyftdi.spi import SpiController, SpiGpioPort
 import binascii
 import asyncio
+from asyncio import Event
 from io import StringIO
 
 
@@ -55,23 +56,30 @@ CARAVEL_REG_WRITE = 0x88
 
 
 class Led:
-    def __init__(self, gpio):
+    """Class definition for the LED connected to the FTDI chip.
+
+    :param gpio: The GPIO connected to the LED.
+    :type gpio: SpiGpioPort
+    """
+
+    def __init__(self, gpio: SpiGpioPort):
         self.gpio = gpio
         self.gpio
-        self.led = 1
+        self.led = False
 
     def toggle(self):
         """Toggle the led once."""
-        self.led = (self.led + 1) & 0x1
-        output = 0b000100000000 | self.led << 11
+        self.led = not self.led
+        output = 0b000100000000 | int(self.led) << 11
         if self.gpio:
             self.gpio.write(output)
             time.sleep(0.2)
 
-    async def toggle_until_stop_event(self, stop_event):
+    async def toggle_until_stop_event(self, stop_event: Event):
         """Toggle the led until the stop event is set.
 
         :param stop_event: The stop event for which to check.
+        :type stop_event: Event
         """
         while not stop_event.is_set():
             await asyncio.to_thread(self.toggle)
