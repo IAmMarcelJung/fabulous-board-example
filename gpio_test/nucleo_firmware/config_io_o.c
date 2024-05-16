@@ -47,7 +47,7 @@ void set_registers() {
 
 void main()
 {
-	int i,j,high_chain_io;
+    int i,j,high_chain_io;
     int num_pulses = 4;
     reg_gpio_mode1 = 1;
     reg_gpio_mode0 = 0;
@@ -72,7 +72,6 @@ void main()
     while (1){
         flag = receive_io0();
         if (flag == 1){
-            
             io_num++;
             mask = 0;
             high_chain_io = 37 - io_num;
@@ -91,7 +90,7 @@ void main()
                             mask = received_bit << io_num;
                         }
                         if (high_chain_io>=32){
-                            reg_mprj_datah = received_bit << high_chain_io-32;
+                            reg_mprj_datah = received_bit << (high_chain_io-32);
                         }
                         reg_mprj_datal = mask;
                         counter++;
@@ -104,8 +103,6 @@ void main()
                 }
             }
         }
-            
     }
-
 }
 

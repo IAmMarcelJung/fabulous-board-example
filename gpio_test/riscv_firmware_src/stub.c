@@ -14,17 +14,18 @@
  * limitations under the License.
  * SPDX-License-Identifier: Apache-2.0
  */
+#include <defs.h>
 
 void putchar(char c)
 {
-	if (c == '\n')
-		putchar('\r');
+    if (c == '\n')
+        putchar('\r');
     while (reg_uart_txfull == 1);
-	reg_uart_data = c;
+    reg_uart_data = c;
 }
 
 void print(const char *p)
 {
-	while (*p)
-		putchar(*(p++));
+    while (*p)
+        putchar(*(p++));
 }

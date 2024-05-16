@@ -24,6 +24,6 @@ always @(posedge clk) begin
     end
 end
 
-assign io_out[30:0] = {6'h3, ctr[23:0]}; // pass thru reset for debugging
+assign io_out[30:1] = {6'h3F, ctr[23:1]}; // pass thru reset for debugging
 assign io_oeb = ~(28'b1);
 endmodule

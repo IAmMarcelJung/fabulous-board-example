@@ -53,7 +53,7 @@ module fab_tb;
 
     always #5000 CLK = (CLK === 1'b0);
 
-    integer i, j;
+    integer i, j, fd;
     reg have_errors = 1'b0;
     localparam [31:0] ctrl_word = 32'h0000FAB1;
     initial begin
@@ -74,20 +74,36 @@ module fab_tb;
         #10000;
         repeat (20) @(posedge CLK);
         #2500;
+`ifdef DUMP_BITSTREAM
+        fd = $fopen("bitstream_binary_data.txt", "w");
+`endif 
         for (i = 0; i < MAX_BITBYTES; i = i + 4) begin
             if ((i % 100) == 0)
                 $display("bit %d", i);
             for (j = 0; j < 32; j = j + 1) begin
                 s_data = bitstream[i + (j / 8)][7 - (j % 8)]; // data bit
+`ifdef DUMP_BITSTREAM
+                $fwrite(fd, s_data);
+`endif 
                 repeat (1) @(posedge CLK);
                 s_clk = 1'b1; // rising
                 repeat (1) @(posedge CLK);
                 s_data = ctrl_word[31-j];
+`ifdef DUMP_BITSTREAM
+                $fwrite(fd, s_data);
+`endif 
                 repeat (1) @(posedge CLK);
                 s_clk = 1'b0;
                 repeat (2) @(posedge CLK);
             end
+`ifdef DUMP_BITSTREAM
+            $fwrite(fd, "\n");
+`endif 
         end
+`ifdef DUMP_BITSTREAM
+        #100
+        $fclose(fd);
+`endif 
         repeat (100) @(posedge CLK);
         O_top = 28'b1; // reset
         repeat (5) @(posedge CLK);
