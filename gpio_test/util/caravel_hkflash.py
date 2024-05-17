@@ -8,7 +8,7 @@ import binascii
 import asyncio
 from asyncio import Event
 from io import StringIO
-from typing import Callable, Any, Coroutine, Tuple
+from typing import Callable, Any, Coroutine
 
 
 SR_WIP = 0b00000001  # Busy/Work-in-progress bit
@@ -179,6 +179,8 @@ class Memory:
 
         addr = 0
         total_bytes = 0
+        buf = bytearray()
+        nbytes = 0
 
         with open(file_path, mode="r") as f:
             for line in f:
@@ -187,12 +189,26 @@ class Memory:
                     print(f"setting address to {hex(addr)}")
                 else:
                     values = bytearray.fromhex(line.rstrip())
-                    nbytes = len(values)
+                    buf.extend(values)
+                    nbytes += len(values)
+
+                if nbytes >= 256 or (line and line.startswith("@") and nbytes > 0):
                     total_bytes += nbytes
-                    await self.__transfer_sequence(write, nbytes, values, addr)
+                    await self.__transfer_sequence(write, nbytes, buf, addr)
+
                     if nbytes > 256:
+                        buf = buf[256:]
+                        addr += 256
+                        nbytes -= 256
                         print("*** over 256 hit")
-                    addr += nbytes
+                    else:
+                        buf = bytearray()
+                        addr += 256
+                        nbytes = 0
+
+            if nbytes > 0:
+                total_bytes += nbytes
+                await self.__transfer_sequence(write, nbytes, buf, addr)
 
         print(f"\ntotal_bytes = {total_bytes}")
         stop_event.set()
@@ -218,7 +234,7 @@ class Memory:
         if buf == buf2:
             print(f"addr {hex(addr)}: read compare successful")
         else:
-            print("addr {hex(addr)}: *** read compare FAILED ***")
+            print(f"addr {hex(addr)}: *** read compare FAILED ***")
             print(binascii.hexlify(buf))
             print("<----->")
             print(binascii.hexlify(buf2))
