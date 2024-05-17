@@ -9,7 +9,6 @@ import asyncio
 from asyncio import Event
 from io import StringIO
 from typing import Callable, Any, Coroutine
-import aiofiles
 
 
 SR_WIP = 0b00000001  # Busy/Work-in-progress bit
