@@ -3,124 +3,58 @@
 ## Summary
 
 This repository documents how to upload a bitstream to a
-[FABulous](https://github.com/FPGA-Research-Manchester/FABulous) FPGA[^1]
+[FABulous](https://github.com/FPGA-Research-Manchester/FABulous) eFPGA[^1]
+fabricated in the [MPW-2](https://platform.efabless.com/shuttles/MPW-2) run of
+the Open MPW Shuttle Program.
 mounted on a [caravel
-HAT](https://github.com/efabless/caravel_board/tree/main/hardware/nucleo/caravel_nucleo)[^2]
+HAT](https://github.com/efabless/caravel_board/tree/main/hardware/nucleo/caravel_nucleo)[^2].
+This HAT can either operate in standalone mode or be
 mounted onto a [Nucleo
 board](https://www.st.com/en/evaluation-tools/nucleo-f746zg.html#overview)[^3].
-The process is using bash scripts and Micropython and is based on this [forked
-base repository](https://github.com/gatecat/fabulous-mpw2-bringup) (commit ```34bcb9d```).
+
+The process for using the Nucleo board is using bash scripts and Micropython and
+is based on this
+[forked base repository](https://github.com/gatecat/fabulous-mpw2-bringup)
+(commit `34bcb9d`).
+
 Also the test functionality from the [caravel board
 repo](https://github.com/efabless/caravel_board/tree/main) (commit
-```0eb8c4c```) is used, but with a bit of cleanup in the directory structure.
-There are also other ways to to upload the files bitstream, but this one turned
-out as the most reliable and fastest way.
+`0eb8c4c`) is used, but with a bit of cleanup in the directory structure and
+adjustments to the Makefiles and the flash script. It is mandatory to check a
+chip for the failure pattern caused by the hold time violations in the GPIO
+configuration module prior to uploading a bitstream. There are currently seven
+pretested chips available at the University of Heidelberg. Each pretested chip
+is labeled with its part number, starting at 0. If you test another chip in the
+future, please also label it.
 
-[^1]: this will be referred to as "FPGA".
-[^2]: this will be referred to as "HAT".
-[^3]: this will be referred to as "the board", "board", "Nucleo" or "Nucleo
-  board".
+## Project structure
 
-## TLDR to run the demo
-
-Install [mpremote](https://pypi.org/project/mpremote)
-and
-[mpy-cross](https://pypi.org/project/mpy-cross/).
-
-Connect a USB cable to ```CN1```.
-
-> [!IMPORTANT]
-> Be sure to wait a few seconds, until the HAT is fully powered on and
-> the Power LED is on. Otherwise running the bitstream may silently
-> fail.
-
-Go to ```./caravel/```.
-
-Run this command if the GPIO test process has already been executed and the
-firmware has been flashed:
-
-```console
-mpremote mount . exec "import fabulous_demo; fabulous_demo.run()"
-```
-
-For an empty board without tested GPIOs and flashed firmware:
-
-Follow [this guide](./gpio_test/nucleo_firmware/)
-to check the pins for hold time violations.
-
-## Prerequisites
-
-The upload process is based on micropython modules, so you
-need to install [mpremote](https://pypi.org/project/mpremote) for easy
-communication with the Nucleo board.
-To be able to compile your own
-micropython file, also install  [mpy-cross](https://pypi.org/project/mpy-cross/),
-but this is not needed if the board is already prepared for the demo.
-If you do not have a bitstream yet, you first have to generate it
-using [FABulous](https://github.com/FPGA-Research-Manchester/FABulous).
-Make sure to use the ```top_wrapper.v``` module in ```user_design```.
-
-## Hardware
-
-The host PC has to be connected over the ST-LINK USB Micro-B connector  ```CN1```
-to the Nucleo board.
-
-> [!IMPORTANT]
-> Be sure to wait a few seconds, until the HAT is fully powered on and
-> the Power LED is on. Otherwise running the bitstream may silently
-> fail.
-
-If the GPIOs have not been checked for timing failures for the currently used
-part, you have to follow [this
-guide](./gpio_test/nucleo_firmware/)
-first.
-
-### PmodVGA wiring
-
-This is the wiring for the VGA demo.
-
-| HAT | PmodVGA |
-|-------------|---------|
-|  IO[15]     |  HS     |
-|  IO[16]     |  VS     |
-|  IO[17]     |  R2     |
-|  IO[18]     |  G2     |
-|  IO[19]     |  B2     |
-|  IO[22]     |  R3     |
-|  IO[23]     |  G3     |
-|  IO[24]     |  B3     |
-|  GND        |  GND    |
-|  3V3        |  3V3    |
+- `caravel`: Files for using the Nucleo board to upload a bitstream.
+- `fabric`: Files of the hardware fabric on the MPW-2 chip.
+- `gpio_test`: Directories for checking the GPIO configuration failure pattern
+  and for uploading the bitstream in standalone mode. Also contains a directory
+  for tests of the modules used in the firmware.
+- `output_files`: Output files of many actions inside the repository. Also the
+  bitstream (or a link to it) should be placed here.
+- `sim`: Files for simulation of the whole fabric including uploading the
+  bitstream of the user design.
+- `user_design`: Example user designs.
 
 ## Uploading a bitstream
 
-To run the demo, go to ```./caravel/``` and execute this command:
+There are two options for uploading a bitstream. Either the Nucleo board
+used for the GPIO configuration testing or the Caravel board in standalone mode
+can be used. The process for using the Nucleo board for a checked chip is
+described in [caravel](./caravel) and in [gpio_test](./gpio_test) for the
+standalone mode.
 
-```console
-mpremote mount . exec "import fabulous_demo; fabulous_demo.run()"
-```
+## General Information
 
-The demo is not directly displayed correctly, but this
-should only last a few seconds, until the image data is loaded into the FPGA.
-
-If you want to upload your own bitstream, place the bitstream in the
-```sim/test_design/``` directory and set the ```DESIGN``` environment variable
-to your design name (e.g. ```sequential_16bit_en```). Also adjust
-```caravel_spi.py``` to your needs. Then run
-
-```console
-mpremote mount . exec "import caravel_spi; caravel_spi.run()"
-```
-
-Of course you can also come up with your own module.
-
-## Additional Information
-
-In ```fabric/verilog/eFPGA_v3_top_sky130.v``` the mappings of the HAT
+In `fabric/verilog/eFPGA_v3_top_sky130.v` the mappings of the HAT
 IO-Pins to the internal pins can be found. However, the pins are shifted by an
 offset of 7
 because the first 7 pins are used by Caravel.
-Therefore ```io_in[0]``` corresponds to ```IO_7``` in the micropython code and
+Therefore `io_in[0]` corresponds to `IO_7` in the micropython code and
 so on. A few IOs are also already assigned inside the fabric as follows:
 
 | HAT         | FPGA     | Micropython | Function       |
@@ -133,12 +67,12 @@ so on. A few IOs are also already assigned inside the fabric as follows:
 |  IO[12]     | io_in[5] | IO_12       | UART RX        |
 |  IO[13]     | io_out[6] | IO_13       | RX LED        |
 
-Pins ```IO14```/```io_in[7]``` and higher can be used in the user design.
+Pins `IO14`/`io_in[7]` and higher can be used in the user design.
 
 ### Clock selection
 
-By setting ```IO_8``` and ```IO_9```, the clock used for the FPGA can be selected.
-The selection is defined in ```fabric/verilog/eFPGA_v3_top_sky130.v``` as follows:
+By setting `IO_8` and `IO_9`, the clock used for the eFPGA can be selected.
+The selection is defined in `fabric/verilog/eFPGA_v3_top_sky130.v` as follows:
 
 | IO_8 | IO_9 | clock source        |
 |------|------|---------------------|
@@ -151,3 +85,8 @@ The selection is defined in ```fabric/verilog/eFPGA_v3_top_sky130.v``` as follow
 - [GPIO diagnostic](https://github.com/efabless/caravel_board/tree/main/firmware/mpw2-5/nucleo)
 - [FABulous](https://github.com/FPGA-Research-Manchester/FABulous)
 - [Caravel HAT](https://github.com/efabless/caravel_board/tree/main/hardware/nucleo/caravel_nucleo)
+
+[^1]: this will be referred to as "eFPGA".
+[^2]: this will be referred to as "HAT".
+[^3]: this will be referred to as "the board", "board", "Nucleo" or "Nucleo
+  board".
