@@ -17,7 +17,6 @@ The directories contain the following:
 - `build_custom_firmware`: A variation of `build_firmware_template`.
 - `build_firmware_template`: A template directory for creating the SoC firmware
 to configure the GPIOs and upload the bitstream.
-The original name in the source was `gpio_test`.
 - `generated`: Some generated files needed for the RISC-V firmware. No changes
 were made. It is unclear how these files were originally generated so they will
 not be regenerated here.
