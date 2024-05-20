@@ -27,6 +27,19 @@ pretested chips available at the University of Heidelberg. Each pretested chip
 is labeled with its part number, starting at 0. If you test another chip in the
 future, please also label it.
 
+## Project structure
+
+- `caravel`: Files for using the Nucleo board to upload a bitstream.
+- `fabric`: Files of the hardware fabric on the MPW-2 chip.
+- `gpio_test`: Directories for checking the GPIO configuration failure pattern
+  and for uploading the bitstream in standalone mode. Also contains a directory
+  for tests of the modules used in the firmware.
+- `output_files`: Output files of many actions inside the repository. Also the
+  bitstream (or a link to it) should be placed here.
+- `sim`: Files for simulation of the whole fabric including uploading the
+  bitstream of the user design.
+- `user_design`: Example user designs.
+
 ## Uploading a bitstream
 
 There are two options for uploading a bitstream. Either the Nucleo board
