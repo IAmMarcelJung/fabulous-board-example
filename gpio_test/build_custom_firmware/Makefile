@@ -27,7 +27,7 @@ check: gpio_config_def.py gpio_config_io.py gen_config_header
 flash_caravel: $(FIRMWARE_FILE)  check hex $(BITSTREAM_HEADER)
 	@echo
 	@echo "Start flashing Caravel."
-	python3 ../util/caravel_hkflash.py  $<
+	sudo python3 ../util/caravel_hkflash.py  $<
 	@echo "$(GREEN)Done flashing Caravel.$(RESET_COLOR)"
 
 flash_nucleo: gen_config_header $(FIRMWARE_FILE) flash
