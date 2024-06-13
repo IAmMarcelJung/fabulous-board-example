@@ -97,6 +97,18 @@ class Led:
             await self.toggle(delay)
 
 
+class UartEnablePin:
+    """Class definition for the UART enable pin"""
+
+    def __init__(self, gpio):
+        self.gpio = gpio
+
+    def set_value(self, value):
+        output = value << GPIO_UART_EN_POS
+        if self.gpio:
+            self.gpio.write(output)
+
+
 class Memory:
     """Class defintion for interacting with the memory."""
 
