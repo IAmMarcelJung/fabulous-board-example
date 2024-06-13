@@ -89,7 +89,6 @@ module fab_tb;
             #bittime;
             for (bit = 7; bit > 0; bit = bit - 1) begin
                 Rx = bitstream[byte][bit];
-                //repeat (1) @(posedge CLK);
                 #bittime;
             end
             Rx = 1;
