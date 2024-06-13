@@ -58,6 +58,9 @@ CARAVEL_REG_WRITE = 0x88
 FIRMWARE_WRITE = True
 FIRMWARE_VERIFY = False
 
+GPIO_UART_EN_POS = 8
+GPIO_TX_LED_POS = 11
+
 
 class Led:
     """Class definition for the LED connected to the FTDI chip."""
@@ -79,7 +82,7 @@ class Led:
         :type delay: float
         """
         self.led = not self.led
-        output = 0b000100000000 | int(self.led) << 11
+        output = 0b000100000000 | int(self.led) << GPIO_TX_LED_POS
         if self.gpio:
             self.gpio.write(output)
             await asyncio.sleep(delay)
