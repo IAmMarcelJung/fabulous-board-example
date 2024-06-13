@@ -25,8 +25,6 @@
 #define GET_BIT_AS_BOOL_FROM_BYTE(byte, index) ((bool)(((byte) >> (index)) & 0x01u))
 #define MODULO_4(data) (data & 0x03u) // Just using the last two bits is effectively modulo 4
 
-#define PREAMBLE_SIZE 128u
-
 #define DELAY 50u
 
 static volatile uint32_t data_reg_shadow = 0u;
@@ -54,14 +52,14 @@ void upload_bitstream(uint8_t const *const bitstream_data,
         uint32_t bitream_size)
 {
     // Reset user logic
-    //set_gpio(GPIO_35);
 #ifndef GTEST
     data_reg_shadow |= REGISTER_DATA_BIT(RESET_REGISTER);
+    reg_mprj_datah = data_reg_shadow;
 #endif
     uint32_t ctrl = CTRL_WORD_ENABLE_BITBANG;
 
     // Loop from first to last byte. Inside the byte loop from MSB to LSB.
-    for (uint8_t byte_pos = 0u; byte_pos < PREAMBLE_SIZE; byte_pos++)
+    for (uint8_t byte_pos = 0u; byte_pos < BYTES_IN_WORD; byte_pos++)
     {
         uint8_t control_word_byte_pos = MODULO_4(~byte_pos); // Invert because we want to start from the most significant byte.
         uint8_t current_control_word_byte = EXTRACT_BYTE_FROM_WORD(CTRL_WORD_ENABLE_BITBANG, control_word_byte_pos);
@@ -77,7 +75,7 @@ void upload_bitstream(uint8_t const *const bitstream_data,
         transmit_byte(current_byte, current_control_word_byte);
     }
 
-    for (uint8_t byte_pos = 0u; byte_pos < PREAMBLE_SIZE; byte_pos++)
+    for (uint8_t byte_pos = 0u; byte_pos < BYTES_IN_WORD; byte_pos++)
     {
         uint8_t control_word_byte_pos = MODULO_4(~byte_pos); // Invert because we want to start from the most significant byte.
         uint8_t current_control_word_byte = EXTRACT_BYTE_FROM_WORD(CTRL_WORD_DISABLE_BITBANG, control_word_byte_pos);

@@ -26,4 +26,5 @@ def run():
 
     board.load_bitstream("bitstream.bin")
 
-    board.load_image_data("street.bin")
+    for _ in range(5):
+        board.load_image_data("street.bin")
