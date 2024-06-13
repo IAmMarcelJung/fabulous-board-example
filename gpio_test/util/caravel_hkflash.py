@@ -443,7 +443,7 @@ async def main() -> None:
     await ftdi.memory.firmware_action(file_path, FIRMWARE_VERIFY, stop_event)
 
     ftdi.disable_cpu_reset()
-    ftdi.spi.terminate()
+    ftdi.spi.close(True)
 
 
 if __name__ == "__main__":
