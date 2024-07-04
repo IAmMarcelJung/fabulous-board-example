@@ -272,6 +272,7 @@ else:
 error = False
 for i in range(len(gpio_h_reg)):
     if not check_stream(gpio_h_reg[i], config_h[i]):
+        print(f"{37-i}: {gpio_h_reg[i]}, {config_h[i]}")
         error = True
 
 if not error:
