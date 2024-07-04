@@ -54,14 +54,12 @@ def build_stream_dependent(stream, config):
         s = stream + "1100000000000"
     return s
 
-dum=1
 
 def build_stream_independent(stream, config):
     s = ""
     if config == C_MGMT_OUT:
         # stream += '110000000100'
         s = stream + "110000000000"
-                   # 1100000000001
     elif config == C_MGMT_IN:
         s = stream + "100000000001"
     elif config == C_DISABLE:
@@ -91,7 +89,7 @@ def build_stream_none(stream, config):
     elif config == C_MGMT_IN:
         s = stream + "1000000000011"
     elif config == C_DISABLE:
-        s = stream + "0000000000000"   
+        s = stream + "0000000000000"
     elif config == C_ALL_ONES:
         s = stream + "1111111111111"
     elif config == C_USER_BIDIR_WPU:
@@ -152,10 +150,8 @@ for k in reversed(range(NUM_IO)):
         stream_l = build_stream_independent(stream_l, config_l[k])
     elif gpio_l[k][1] == H_SPECIAL:
         stream_l = build_stream_special(stream_l, config_l[k])
-    elif gpio_l[k][1] == H_NONE: #generalise this may be by using NUM_IO and knowing which pin is faulty and just hard coding that pin's stream based on the violation type
-        #stream_l = build_stream_none(stream_l, config_l[k]+2)
-        #if config_l[k] == C_DISABLE:
-            stream_l = stream_l + "1000000000000"
+    elif gpio_l[k][1] == H_NONE:
+        stream_l = stream_l + "1000000000000"
     else:
         stream_l = build_stream_none(stream_l, config_l[k])
 
@@ -223,6 +219,3 @@ for x in config_stream:
 f.write(" };\n")
 
 f.close()
-
-
-print("hefiw````````````````````ugfiwgfiubgifrb")
