@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 set -ex
 
-module=$1
+# Strip .py from the command line argument so both the module and the file name
+# can be specified
+module="${1%.py}"
 
 if [ -z "$module" ]; then
     echo "Please specify the module containing run()"

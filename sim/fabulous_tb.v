@@ -51,11 +51,14 @@ module fab_tb;
     localparam MAX_BITBYTES = 16384;
     reg [7:0] bitstream[0:MAX_BITBYTES-1];
 
-    always #5000 CLK = (CLK === 1'b0);
+    always #50000 CLK = (CLK === 1'b0);
 
-    integer i, j;
+    integer i, j, fd;
+    integer byte, bit;
     reg have_errors = 1'b0;
+    reg [7:0] current_byte;
     localparam [31:0] ctrl_word = 32'h0000FAB1;
+    localparam bittime = 17631;
     initial begin
 `ifdef CREATE_FST
         $dumpfile("../output_files/fab_tb.fst");
@@ -74,20 +77,53 @@ module fab_tb;
         #10000;
         repeat (20) @(posedge CLK);
         #2500;
+`ifdef DUMP_BITSTREAM
+        fd = $fopen("bitstream_binary_data.txt", "w");
+`endif
+`ifdef UART
+        for (byte = 0; byte < MAX_BITBYTES; byte = byte + 1) begin
+            current_byte = bitstream[byte];
+            if ((byte % 100) == 0)
+                $display("Byte %d", byte);
+            Rx = 0;
+            #bittime;
+            for (bit = 7; bit > 0; bit = bit - 1) begin
+                Rx = bitstream[byte][bit];
+                #bittime;
+            end
+            Rx = 1;
+            #bittime;
+        end
+`else
+
         for (i = 0; i < MAX_BITBYTES; i = i + 4) begin
             if ((i % 100) == 0)
                 $display("bit %d", i);
             for (j = 0; j < 32; j = j + 1) begin
                 s_data = bitstream[i + (j / 8)][7 - (j % 8)]; // data bit
+`ifdef DUMP_BITSTREAM
+                $fwrite(fd, s_data);
+`endif
                 repeat (1) @(posedge CLK);
                 s_clk = 1'b1; // rising
                 repeat (1) @(posedge CLK);
                 s_data = ctrl_word[31-j];
+`ifdef DUMP_BITSTREAM
+                $fwrite(fd, s_data);
+`endif
                 repeat (1) @(posedge CLK);
                 s_clk = 1'b0;
                 repeat (2) @(posedge CLK);
             end
+`ifdef DUMP_BITSTREAM
+            $fwrite(fd, "\n");
+`endif
         end
+`endif
+`ifdef DUMP_BITSTREAM
+        #100
+        $fclose(fd);
+`endif
         repeat (100) @(posedge CLK);
         O_top = 28'b1; // reset
         repeat (5) @(posedge CLK);

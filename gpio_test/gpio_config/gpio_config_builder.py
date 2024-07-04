@@ -123,6 +123,7 @@ def correct_dd_holds(stream, bpos):
             skip = True
         else:
             skip = False
+
     return "".join(bits)
 
 
@@ -149,6 +150,8 @@ for k in reversed(range(NUM_IO)):
         stream_l = build_stream_independent(stream_l, config_l[k])
     elif gpio_l[k][1] == H_SPECIAL:
         stream_l = build_stream_special(stream_l, config_l[k])
+    elif gpio_l[k][1] == H_NONE:
+        stream_l = stream_l + "1000000000000"
     else:
         stream_l = build_stream_none(stream_l, config_l[k])
 
@@ -195,14 +198,12 @@ n_bits = len(config_stream)
 #
 #  create output files
 #
-
+print(f"Creating config data for part {part} using {voltage}V.")
 print("stream_h   = " + stream_h)
 print("stream_l   = " + stream_l)
 print("n_bits = {}".format(n_bits))
 
 f = open("gpio_config_data.py", "w")
-# f.write("from bitstring import Bits, BitArray, BitStream\n")
-f.write("from enum import Enum\n")
 f.write("\n")
 f.write("config_data_h = '" + stream_h + "'\n")
 f.write("config_data_l = '" + stream_l + "'\n")
@@ -210,8 +211,6 @@ f.close()
 
 f = open("gpio_config_data.h", "w")
 f.write("\n")
-
-# f.write("int n_bits = " + str(n_bits) + ";\n")
 
 f.write("char config_stream[] = { ")
 f.write("0x{:02x}".format(n_bits))

@@ -19,6 +19,8 @@ from gpio_config_def import (
     H_SPECIAL,
     gpio_h,
     gpio_l,
+    part,
+    voltage,
 )
 
 NUM_IO = 19
@@ -247,6 +249,8 @@ for k in range(len(config_data_l)):
 # print_header(gpio_l)
 
 # --------------------------------------------------------------------
+print("-------CHECK-------")
+print(f"Results for part {part} at {voltage}V:")
 
 # check desired IO against simulation
 error = False
@@ -268,6 +272,7 @@ else:
 error = False
 for i in range(len(gpio_h_reg)):
     if not check_stream(gpio_h_reg[i], config_h[i]):
+        print(f"{37-i}: {gpio_h_reg[i]}, {config_h[i]}")
         error = True
 
 if not error:
