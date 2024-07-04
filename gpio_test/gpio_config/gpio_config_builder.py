@@ -123,6 +123,7 @@ def correct_dd_holds(stream, bpos):
             skip = True
         else:
             skip = False
+
     return "".join(bits)
 
 
@@ -149,6 +150,8 @@ for k in reversed(range(NUM_IO)):
         stream_l = build_stream_independent(stream_l, config_l[k])
     elif gpio_l[k][1] == H_SPECIAL:
         stream_l = build_stream_special(stream_l, config_l[k])
+    elif gpio_l[k][1] == H_NONE:
+        stream_l = stream_l + "1000000000000"
     else:
         stream_l = build_stream_none(stream_l, config_l[k])
 
