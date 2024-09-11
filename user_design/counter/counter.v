@@ -1,4 +1,4 @@
-module top(input wire clk, input wire [30:0] io_in, output wire [30:0] io_out, io_oeb);
+module top(input wire clk, input wire [23:0] io_in, output wire [23:0] io_out, io_oeb);
 wire rst = io_in[0];
 reg [23:0] ctr;
 reg [15:0] prescale;
@@ -24,6 +24,6 @@ always @(posedge clk) begin
     end
 end
 
-assign io_out[30:1] = {6'h3F, ctr[23:1]}; // pass thru reset for debugging
-assign io_oeb = ~(28'b1);
+assign io_out[23:1] = ctr[23:1]; // pass thru reset for debugging
+assign io_oeb = ~(24'b1);
 endmodule
