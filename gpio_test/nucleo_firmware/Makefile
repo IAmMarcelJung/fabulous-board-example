@@ -20,6 +20,7 @@ INCLUDES := \
 	-I../firmware_helpers/gpio \
 	-I../firmware_helpers/bitstream \
 	-I../firmware_helpers/register_actions \
+	-I../firmware_helpers/helpers \
 	-I../firmware_helpers/global_defs
 
 SRC_FILES := \
@@ -31,6 +32,7 @@ SRC_FILES := \
 	$(THIS_MAKEFILE_DIR)../firmware_helpers/upload_bitstream/upload_bitstream.c \
 	$(THIS_MAKEFILE_DIR)../firmware_helpers/gpio/gpio.c \
 	$(THIS_MAKEFILE_DIR)../firmware_helpers/register_actions/register_actions.c \
+	$(THIS_MAKEFILE_DIR)../firmware_helpers/helpers/helpers.c \
 
 TOOLCHAIN_PREFIX := riscv64-unknown-elf
 PATTERN ?= config_io_o
