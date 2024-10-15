@@ -4,3 +4,4 @@
 *.bak
 !caravel/demo/
 *.mpy
+*.rules.verible_lint
