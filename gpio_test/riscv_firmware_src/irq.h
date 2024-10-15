@@ -5,10 +5,10 @@
 extern "C" {
 #endif
 
-#include <generated/csr.h>
-#include <generated/soc.h>
+#include <csr.h>
+#include <irq_vex.h>
+#include <soc.h>
 #include <system.h>
-
 // PicoRV32 has a very limited interrupt support, implemented via custom
 // instructions. It also doesn't have a global interrupt enable/disable, so
 // we have to emulate it via saving and restoring a mask and using 0/~1 as a
@@ -50,7 +50,6 @@ static inline void irq_setmask(unsigned int mask) {
 }
 
 static inline unsigned int irq_pending(void) { return _irq_pending; }
-
 #ifdef __cplusplus
 }
 #endif

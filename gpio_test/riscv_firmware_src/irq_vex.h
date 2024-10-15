@@ -5,6 +5,7 @@
 extern "C" {
 #endif
 
+#include <csr-defs.h>
 #include <csr.h>
 #include <soc.h>
 #include <system.h>

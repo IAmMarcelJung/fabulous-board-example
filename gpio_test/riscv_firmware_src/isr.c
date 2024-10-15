@@ -1,12 +1,8 @@
 // This file is Copyright (c) 2020 Florent Kermarrec <florent@enjoy-digital.fr>
 // License: BSD
 
-#include <csr.h>
 #include <defs.h>
-#include <irq.h>
 #include <irq_vex.h>
-#include <soc.h>
-#include <uart.h>
 
 uint16_t flag;
 
