@@ -1,49 +1,41 @@
+#include "gpio_config_io.h"
 #include "../riscv_firmware_src/defs.h"
 #include <csr.h>
-#include "../nucleo_firmware/src/send_packet.h"
-#include "gpio_config_io.h"
 #include <gpio_config_data.h>
 
-void delay(const int d)
-{
+void delay(const int d) {
 
     /* Configure timer for a single-shot countdown */
-	reg_timer0_config = 0;
-	reg_timer0_data = d;
+    reg_timer0_config = 0;
+    reg_timer0_data = d;
     reg_timer0_config = 1;
 
     // Loop, waiting for value to reach zero
-   reg_timer0_update = 1;  // latch current value
-   while (reg_timer0_value > 0) {
-           reg_timer0_update = 1;
-   }
-
+    reg_timer0_update = 1; // latch current value
+    while (reg_timer0_value > 0) {
+        reg_timer0_update = 1;
+    }
 }
 
-void bb_mode()
-{
+void bb_mode() {
     // Enable bit-bang mode
-    reg_mprj_xfer = 0x06;			// Enable bit-bang mode
-    reg_mprj_xfer = 0x02;           // Pulse reset
+    reg_mprj_xfer = 0x06; // Enable bit-bang mode
+    reg_mprj_xfer = 0x02; // Pulse reset
     reg_mprj_xfer = 0x06;
-
 }
 
-void load()
-{
+void load() {
     reg_mprj_xfer = 0x06;
     delay(WAIT);
-    reg_mprj_xfer = 0x0e; 	// Apply load
+    reg_mprj_xfer = 0x0e; // Apply load
     delay(WAIT);
     reg_mprj_xfer = 0x06;
     delay(WAIT);
 }
 
-void clear_registers()
-{
+void clear_registers() {
     // clear shift register with zeros and load before starting test
-    for (int i = 0; i < 250; i++)
-    {
+    for (int i = 0; i < 250; i++) {
         reg_mprj_xfer = 0x06;
         delay(WAIT);
         reg_mprj_xfer = 0x16;
@@ -52,15 +44,13 @@ void clear_registers()
     load();
 }
 
-void gpio_config_io()
-{
+void gpio_config_io() {
     int i = 1; // start offset 1, first value is n_bits
     int n_bits = config_stream[0];
-//    bb_mode();
+    //    bb_mode();
     clear_registers();
-    //int n_bits = sizeof(config_stream);
-    while (i < n_bits)
-    {
+    // int n_bits = sizeof(config_stream);
+    while (i < n_bits) {
         reg_mprj_xfer = config_stream[i];
         delay(WAIT);
         reg_mprj_xfer = config_stream[i] + 0x10;
@@ -69,12 +59,3 @@ void gpio_config_io()
     }
     load();
 }
-
-//void *memcpy(void *dest, const void *src, int n)
-//{
-//    for (int i = 0; i < n; i++)
-//    {
-//        ((char*)dest)[i] = ((char*)src)[i];
-//    }
-//}
-

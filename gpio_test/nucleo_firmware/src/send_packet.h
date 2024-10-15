@@ -1,7 +1,7 @@
 #ifndef SEND_PACKET_H
 #define SEND_PACKET_H
 
-#define PULSE_WIDTH   250000
+#define PULSE_WIDTH 250000
 
 void count_down(const int d);
 
