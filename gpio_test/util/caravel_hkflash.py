@@ -424,7 +424,6 @@ async def main() -> None:
     ftdi = MyFtdi()
     ftdi.enable_cpu_reset()
     ftdi.print_manufacturer_and_product_id()
-    ftdi.check_manufacturer_id()
     await toggle_led_during_ftdi_action(ftdi.memory.erase, ftdi, 0.5)
 
     await toggle_led_during_ftdi_action(
