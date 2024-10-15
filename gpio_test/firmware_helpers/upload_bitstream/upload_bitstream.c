@@ -1,5 +1,5 @@
-#include <global_defs.h>
 #include <defs.h>
+#include <global_defs.h>
 #include <upload_bitstream.h>
 #ifndef GTEST
 #include <register_actions.h>
@@ -21,9 +21,12 @@
 #define CTRL_WORD_DISABLE_BITBANG 0x0000FAB0u
 #define CTRL_WORD_ENABLE_BITBANG 0x0000FAB1u
 
-#define EXTRACT_BYTE_FROM_WORD(word, byte_index) (((word) >> (BITS_IN_BYTE * byte_index)) & 0xFFu)
-#define GET_BIT_AS_BOOL_FROM_BYTE(byte, index) ((bool)(((byte) >> (index)) & 0x01u))
-#define MODULO_4(data) (data & 0x03u) // Just using the last two bits is effectively modulo 4
+#define EXTRACT_BYTE_FROM_WORD(word, byte_index)                               \
+    (((word) >> (BITS_IN_BYTE * byte_index)) & 0xFFu)
+#define GET_BIT_AS_BOOL_FROM_BYTE(byte, index)                                 \
+    ((bool)(((byte) >> (index)) & 0x01u))
+#define MODULO_4(data)                                                         \
+    (data & 0x03u) // Just using the last two bits is effectively modulo 4
 
 #define DELAY 50u
 
@@ -37,10 +40,7 @@ static void transmit_byte(uint8_t data_byte, uint8_t ctrl_word_byte);
 #define S_CLK_REGISTER REGISTER_4_DATA_BIT_POS
 #define S_DATA_REGISTER REGISTER_5_DATA_BIT_POS
 
-void bitstream_init(GPIO * const gpio)
-{
-    gpio_init(gpio);
-}
+void bitstream_init(GPIO *const gpio) { gpio_init(gpio); }
 
 /**
  * @brief Use bitbanging to upload the bitstream to the FPGA.
@@ -49,8 +49,7 @@ void bitstream_init(GPIO * const gpio)
  * @param ctrl_word The control word used to control the bitbang module.
  */
 void upload_bitstream(uint8_t const *const bitstream_data,
-        uint32_t bitream_size)
-{
+                      uint32_t bitream_size) {
     // Reset user logic
 #ifndef GTEST
     data_reg_shadow |= REGISTER_DATA_BIT(RESET_REGISTER);
@@ -59,26 +58,32 @@ void upload_bitstream(uint8_t const *const bitstream_data,
     uint32_t ctrl = CTRL_WORD_ENABLE_BITBANG;
 
     // Loop from first to last byte. Inside the byte loop from MSB to LSB.
-    for (uint8_t byte_pos = 0u; byte_pos < BYTES_IN_WORD; byte_pos++)
-    {
-        uint8_t control_word_byte_pos = MODULO_4(~byte_pos); // Invert because we want to start from the most significant byte.
-        uint8_t current_control_word_byte = EXTRACT_BYTE_FROM_WORD(CTRL_WORD_ENABLE_BITBANG, control_word_byte_pos);
+    for (uint8_t byte_pos = 0u; byte_pos < PREAMBLE_SIZE; byte_pos++) {
+        uint8_t control_word_byte_pos =
+            MODULO_4(~byte_pos); // Invert because we want to start from the
+                                 // most significant byte.
+        uint8_t current_control_word_byte = EXTRACT_BYTE_FROM_WORD(
+            CTRL_WORD_ENABLE_BITBANG, control_word_byte_pos);
         transmit_byte(0xFF, current_control_word_byte);
     }
 
-    for (uint32_t byte_pos = 0u; byte_pos < bitream_size; byte_pos++)
-    {
-        uint8_t  current_byte = bitstream_data[byte_pos];
-        uint8_t control_word_byte_pos = MODULO_4(~byte_pos); // Invert because we want to start from the most significant byte.
-        uint8_t current_control_word_byte = EXTRACT_BYTE_FROM_WORD(CTRL_WORD_ENABLE_BITBANG, control_word_byte_pos);
+    for (uint32_t byte_pos = 0u; byte_pos < bitream_size; byte_pos++) {
+        uint8_t current_byte = bitstream_data[byte_pos];
+        uint8_t control_word_byte_pos =
+            MODULO_4(~byte_pos); // Invert because we want to start from the
+                                 // most significant byte.
+        uint8_t current_control_word_byte = EXTRACT_BYTE_FROM_WORD(
+            CTRL_WORD_ENABLE_BITBANG, control_word_byte_pos);
 
         transmit_byte(current_byte, current_control_word_byte);
     }
 
-    for (uint8_t byte_pos = 0u; byte_pos < BYTES_IN_WORD; byte_pos++)
-    {
-        uint8_t control_word_byte_pos = MODULO_4(~byte_pos); // Invert because we want to start from the most significant byte.
-        uint8_t current_control_word_byte = EXTRACT_BYTE_FROM_WORD(CTRL_WORD_DISABLE_BITBANG, control_word_byte_pos);
+    for (uint8_t byte_pos = 0u; byte_pos < PREAMBLE_SIZE; byte_pos++) {
+        uint8_t control_word_byte_pos =
+            MODULO_4(~byte_pos); // Invert because we want to start from the
+                                 // most significant byte.
+        uint8_t current_control_word_byte = EXTRACT_BYTE_FROM_WORD(
+            CTRL_WORD_DISABLE_BITBANG, control_word_byte_pos);
         transmit_byte(0x00, current_control_word_byte);
     }
 
@@ -87,8 +92,7 @@ void upload_bitstream(uint8_t const *const bitstream_data,
 #endif
 }
 
-static void transmit_byte(uint8_t data_byte, uint8_t ctrl_word_byte)
-{
+static void transmit_byte(uint8_t data_byte, uint8_t ctrl_word_byte) {
     for (int32_t bit_pos = (int32_t)MSB_IN_BYTE; bit_pos >= 0; bit_pos--) {
         bool set;
 

@@ -1,5 +1,5 @@
-#include "../riscv_firmware_src/defs.h"
 #include "../gpio_config/gpio_config_io.h"
+#include "../riscv_firmware_src/defs.h"
 #include "src/send_packet.h"
 
 void set_registers() {
@@ -45,9 +45,8 @@ void set_registers() {
     reg_mprj_io_37 = GPIO_MODE_MGMT_STD_OUTPUT;
 }
 
-void main()
-{
-    int i,j,high_chain_io;
+void main() {
+    int i, j, high_chain_io;
     int num_pulses = 4;
     reg_gpio_mode1 = 1;
     reg_gpio_mode0 = 0;
@@ -69,40 +68,39 @@ void main()
     int io_num = 0;
     int received_bit;
 
-    while (1){
+    while (1) {
         flag = receive_io0();
-        if (flag == 1){
+        if (flag == 1) {
             io_num++;
             mask = 0;
             high_chain_io = 37 - io_num;
             int counter = 0;
-            while(1){
+            while (1) {
                 old_received = reg_mprj_datal & mask_io0;
-                while(1){
+                while (1) {
                     received = reg_mprj_datal & mask_io0;
-                    if (received != old_received){
+                    if (received != old_received) {
                         received_bit = received;
-                        if (high_chain_io<32){
+                        if (high_chain_io < 32) {
                             mask = received_bit << io_num;
                             mask = mask | received_bit << high_chain_io;
-                        }
-                        else{
+                        } else {
                             mask = received_bit << io_num;
                         }
-                        if (high_chain_io>=32){
-                            reg_mprj_datah = received_bit << (high_chain_io-32);
+                        if (high_chain_io >= 32) {
+                            reg_mprj_datah = received_bit
+                                             << (high_chain_io - 32);
                         }
                         reg_mprj_datal = mask;
                         counter++;
                         break;
                     }
                 }
-                if (counter == 4){
-                    count_down(PULSE_WIDTH*10);
+                if (counter == 4) {
+                    count_down(PULSE_WIDTH * 10);
                     break;
                 }
             }
         }
     }
 }
-

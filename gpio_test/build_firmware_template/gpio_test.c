@@ -1,12 +1,11 @@
-#include "../riscv_firmware_src/defs.h"
 #include "../gpio_config/gpio_config_io.h"
+#include "../riscv_firmware_src/defs.h"
 
 // --------------------------------------------------------
 // Firmware routines
 // --------------------------------------------------------
 
-int main()
-{
+int main() {
     reg_gpio_mode1 = 1;
     reg_gpio_mode0 = 0;
     reg_gpio_ien = 1;
@@ -16,5 +15,4 @@ int main()
     gpio_config_io();
 
     reg_gpio_out = 1; // ON
-
 }

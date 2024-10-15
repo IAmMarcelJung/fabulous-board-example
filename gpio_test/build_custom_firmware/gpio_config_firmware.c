@@ -5,7 +5,6 @@
 #include <helpers.h>
 #include <register_actions.h>
 #include <stub.h>
-#include <upload_bitstream.h>
 
 int main() {
     reg_gpio_mode1 = 1;
@@ -13,23 +12,10 @@ int main() {
     reg_gpio_ien = 1;
     reg_gpio_oe = 1;
     reg_gpio_out = 1;
-    reg_uart_enable = 1u;
 
     blink(3, 5000000);
     reg_gpio_out = 1;
     gpio_config_io();
-
-    blink(3, 5000000);
-    reg_gpio_out = 1;
-
-    GPIO gpio;
-    gpio.datah_reg_pointer = &reg_mprj_datah;
-    gpio.datal_reg_pointer = &reg_mprj_datal;
-
-    bitstream_init(&gpio);
-
-    upload_bitstream((uint8_t *)&bitstream,
-                     sizeof(bitstream) / sizeof(uint8_t));
 
     blink(3, 5000000);
     reg_gpio_out = 0;

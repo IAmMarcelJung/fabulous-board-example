@@ -20,6 +20,7 @@ INCLUDES := \
 	-I../firmware_helpers/gpio \
 	-I../firmware_helpers/bitstream \
 	-I../firmware_helpers/register_actions \
+	-I../firmware_helpers/helpers \
 	-I../firmware_helpers/global_defs
 
 SRC_FILES := \
@@ -31,6 +32,7 @@ SRC_FILES := \
 	$(THIS_MAKEFILE_DIR)../firmware_helpers/upload_bitstream/upload_bitstream.c \
 	$(THIS_MAKEFILE_DIR)../firmware_helpers/gpio/gpio.c \
 	$(THIS_MAKEFILE_DIR)../firmware_helpers/register_actions/register_actions.c \
+	$(THIS_MAKEFILE_DIR)../firmware_helpers/helpers/helpers.c \
 
 TOOLCHAIN_PREFIX := riscv64-unknown-elf
 PATTERN ?= config_io_o
@@ -185,6 +187,9 @@ setup: check-python
 copy_config_file: $(PREREQUISITES_IF_CONFIG_FILE_TARGET_EXISTS)
 	cp $(THIS_MAKEFILE_DIR)$(CONFIG_FILES_DIR)/$(PART_OUTPUT_DIR)/$(PART_OUTPUT_FILE) $(CONFIG_FILE_PATTERN).py
 
+store_config_file: check_part check_voltage
+		cp $(CONFIG_FILE_PATTERN).py $(THIS_MAKEFILE_DIR)$(CONFIG_FILES_DIR)/$(PART_OUTPUT_DIR)/$(PART_OUTPUT_FILE)
+
 $(CONFIG_FILE_TARGET): | run get_config $(THIS_MAKEFILE_DIR)$(CONFIG_FILES_DIR)/$(PART_OUTPUT_DIR)
 
 $(CONFIG_FILES_DIR)/$(PART_OUTPUT_DIR):
@@ -217,8 +222,10 @@ hex: $(PATTERN:=.hex)
 	@echo "$(GREEN)Done converting $< to $@.$(RESET_COLOR)"
 
 
-run_and_get_config: $(CONFIG_FILE_TARGET)
+run_and_store_config: |$(CONFIG_FILES_DIR)/$(PART_OUTPUT_DIR) store_config_file
+run_and_store_config: $(CONFIG_FILE_TARGET)
 	@echo "$(GREEN)Executed GPIO test and stored config file to $(THIS_MAKEFILE_DIR)$(CONFIG_FILE_TARGET).$(RESET_COLOR)"
+	@printf "\a"
 
 clean::
 	rm -f *.elf $(PYTHON_SRC)*.mpy *.orig config_io_o.hex

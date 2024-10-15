@@ -1,8 +1,8 @@
 #ifndef GPIO_H
 #define GPIO_H
 
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 // Definitons for the GPIO pins
 #define GPIO_0 0u
@@ -50,7 +50,7 @@ typedef struct {
     volatile uint32_t *datah_reg_pointer;
 } GPIO;
 
-void gpio_init(GPIO * const gpio);
+void gpio_init(GPIO *const gpio);
 void set_gpio(uint8_t pin);
 void clear_gpio(uint8_t pin);
 void set_or_clear_gpio(uint8_t pin, bool set);

@@ -1,8 +1,8 @@
 #ifndef REGISTER_ACTIONS_H
 #define REGISTER_ACTIONS_H
 
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 // Definitons register bits
 #define REGISTER_0_DATA_BIT_POS 0
@@ -41,8 +41,9 @@
 #define REGISTER_DATA_BIT_MSK(bit) (0x1 << (bit))
 #define REGISTER_DATA_BIT(bit) REGISTER_DATA_BIT_MSK(bit)
 
-extern void set_bit(uint8_t bit, volatile uint32_t * const reg);
-extern void clear_bit(uint8_t bit, volatile uint32_t * const reg);
-extern void set_or_clear_bit(uint8_t bit, volatile uint32_t * const reg, bool set);
+extern void set_bit(uint8_t bit, volatile uint32_t *const reg);
+extern void clear_bit(uint8_t bit, volatile uint32_t *const reg);
+extern void set_or_clear_bit(uint8_t bit, volatile uint32_t *const reg,
+                             bool set);
 
 #endif /* REGISTER_ACTIONS_H */
