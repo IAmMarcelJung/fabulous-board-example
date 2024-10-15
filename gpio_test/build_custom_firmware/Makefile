@@ -21,6 +21,11 @@ check: gpio_config_def.py gpio_config_io.py gen_config_header
 	python3 ../gpio_config/gpio_config_checker.py
 	@echo "$(GREEN)Done checking GPIO configuration.$(RESET_COLOR)"
 
+gpio_sim: gpio_config_def.py gpio_config_io.py gen_config_header
+	@echo
+	@echo "Simulating GPIO configuration."
+	python3 ../gpio_config/gpio_config_simulator.py
+
 %.bin: %.elf
 	$(TOOLCHAIN_PATH)$(TOOLCHAIN_PREFIX)-objcopy -O binary $< $@
 
