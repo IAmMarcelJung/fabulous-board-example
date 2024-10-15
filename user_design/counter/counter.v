@@ -15,6 +15,7 @@ module top (
         else begin
             if (prescale == PRESCALE_LIMIT) ctr <= ctr + 1'b1;
         end
+
     end
 
     always @(posedge clk) begin

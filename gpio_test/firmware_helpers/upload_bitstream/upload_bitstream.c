@@ -28,8 +28,6 @@
 #define MODULO_4(data)                                                         \
     (data & 0x03u) // Just using the last two bits is effectively modulo 4
 
-#define PREAMBLE_SIZE 128u
-
 #define DELAY 50u
 
 static volatile uint32_t data_reg_shadow = 0u;
@@ -53,9 +51,9 @@ void bitstream_init(GPIO *const gpio) { gpio_init(gpio); }
 void upload_bitstream(uint8_t const *const bitstream_data,
                       uint32_t bitream_size) {
     // Reset user logic
-    // set_gpio(GPIO_35);
 #ifndef GTEST
     data_reg_shadow |= REGISTER_DATA_BIT(RESET_REGISTER);
+    reg_mprj_datah = data_reg_shadow;
 #endif
     uint32_t ctrl = CTRL_WORD_ENABLE_BITBANG;
 

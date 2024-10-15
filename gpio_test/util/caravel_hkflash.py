@@ -58,6 +58,9 @@ CARAVEL_REG_WRITE = 0x88
 FIRMWARE_WRITE = True
 FIRMWARE_VERIFY = False
 
+GPIO_UART_EN_POS = 8
+GPIO_TX_LED_POS = 11
+
 
 class Led:
     """Class definition for the LED connected to the FTDI chip."""
@@ -79,7 +82,7 @@ class Led:
         :type delay: float
         """
         self.led = not self.led
-        output = 0b000100000000 | int(self.led) << 11
+        output = 0b000100000000 | int(self.led) << GPIO_TX_LED_POS
         if self.gpio:
             self.gpio.write(output)
             await asyncio.sleep(delay)
@@ -92,6 +95,18 @@ class Led:
         """
         while not stop_event.is_set():
             await self.toggle(delay)
+
+
+class UartEnablePin:
+    """Class definition for the UART enable pin"""
+
+    def __init__(self, gpio):
+        self.gpio = gpio
+
+    def set_value(self, value):
+        output = value << GPIO_UART_EN_POS
+        if self.gpio:
+            self.gpio.write(output)
 
 
 class Memory:
@@ -439,7 +454,7 @@ async def main() -> None:
     await ftdi.memory.firmware_action(file_path, FIRMWARE_VERIFY, stop_event)
 
     ftdi.disable_cpu_reset()
-    ftdi.spi.terminate()
+    ftdi.spi.close(True)
 
 
 if __name__ == "__main__":
