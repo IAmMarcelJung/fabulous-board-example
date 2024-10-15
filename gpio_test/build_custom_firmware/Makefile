@@ -1,6 +1,6 @@
 # These need to be defined before including the Makefile
 # to set the values defined here in the included Makefile
-PATTERN := custom_firmware
+PATTERN := gpio_config_firmware
 FIRMWARE_FILE ?= $(PATTERN).hex
 BITSTREAM_FILE := $(CWD)../../output_files/bitstream.bin
 BITSTREAM_HEADER := $(CWD)../firmware_helpers/bitstream/bistream.h
