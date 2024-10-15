@@ -30,69 +30,31 @@
 #define USER_IRQ_5_INTERRUPT 7
 
 #ifndef __ASSEMBLER__
-static inline int config_clock_frequency_read(void) {
-	return 10000000;
+static inline int config_clock_frequency_read(void) { return 10000000; }
+static inline int config_cpu_reset_addr_read(void) { return 268435456; }
+static inline const char *config_cpu_human_name_read(void) {
+    return "VexRiscv_MinDebug";
 }
-static inline int config_cpu_reset_addr_read(void) {
-	return 268435456;
+static inline const char *config_cpu_nop_read(void) { return "nop"; }
+static inline int spiflash_phy_frequency_read(void) { return 10000000; }
+static inline const char *spiflash_module_name_read(void) {
+    return "W25Q128JV";
 }
-static inline const char * config_cpu_human_name_read(void) {
-	return "VexRiscv_MinDebug";
-}
-static inline const char * config_cpu_nop_read(void) {
-	return "nop";
-}
-static inline int spiflash_phy_frequency_read(void) {
-	return 10000000;
-}
-static inline const char * spiflash_module_name_read(void) {
-	return "W25Q128JV";
-}
-static inline int spiflash_module_total_size_read(void) {
-	return 16777216;
-}
-static inline int spiflash_module_page_size_read(void) {
-	return 256;
-}
-static inline int config_csr_data_width_read(void) {
-	return 32;
-}
-static inline int config_csr_alignment_read(void) {
-	return 32;
-}
-static inline const char * config_bus_standard_read(void) {
-	return "WISHBONE";
-}
-static inline int config_bus_data_width_read(void) {
-	return 32;
-}
-static inline int config_bus_address_width_read(void) {
-	return 32;
-}
-static inline int timer0_interrupt_read(void) {
-	return 0;
-}
-static inline int uart_interrupt_read(void) {
-	return 1;
-}
-static inline int user_irq_0_interrupt_read(void) {
-	return 2;
-}
-static inline int user_irq_1_interrupt_read(void) {
-	return 3;
-}
-static inline int user_irq_2_interrupt_read(void) {
-	return 4;
-}
-static inline int user_irq_3_interrupt_read(void) {
-	return 5;
-}
-static inline int user_irq_4_interrupt_read(void) {
-	return 6;
-}
-static inline int user_irq_5_interrupt_read(void) {
-	return 7;
-}
+static inline int spiflash_module_total_size_read(void) { return 16777216; }
+static inline int spiflash_module_page_size_read(void) { return 256; }
+static inline int config_csr_data_width_read(void) { return 32; }
+static inline int config_csr_alignment_read(void) { return 32; }
+static inline const char *config_bus_standard_read(void) { return "WISHBONE"; }
+static inline int config_bus_data_width_read(void) { return 32; }
+static inline int config_bus_address_width_read(void) { return 32; }
+static inline int timer0_interrupt_read(void) { return 0; }
+static inline int uart_interrupt_read(void) { return 1; }
+static inline int user_irq_0_interrupt_read(void) { return 2; }
+static inline int user_irq_1_interrupt_read(void) { return 3; }
+static inline int user_irq_2_interrupt_read(void) { return 4; }
+static inline int user_irq_3_interrupt_read(void) { return 5; }
+static inline int user_irq_4_interrupt_read(void) { return 6; }
+static inline int user_irq_5_interrupt_read(void) { return 7; }
 #endif // !__ASSEMBLER__
 
 #endif

@@ -8,4 +8,4 @@
 
 #define CSR_DCACHE_INFO 0xCC0
 
-#endif	/* CSR_DEFS__H */
+#endif /* CSR_DEFS__H */

@@ -2,7 +2,7 @@
 #define STUB_H
 #include <defs.h>
 
-void putchar(char c);
+void uart_putchar(char c);
 
 void print(const char *p);
 

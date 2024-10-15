@@ -16,16 +16,15 @@
  */
 #include <defs.h>
 
-void putchar(char c)
-{
+void uart_putchar(char c) {
     if (c == '\n')
-        putchar('\r');
-    while (reg_uart_txfull == 1);
+        uart_putchar('\r');
+    while (reg_uart_txfull == 1)
+        ;
     reg_uart_data = c;
 }
 
-void print(const char *p)
-{
+void print(const char *p) {
     while (*p)
-        putchar(*(p++));
+        uart_putchar(*(p++));
 }
