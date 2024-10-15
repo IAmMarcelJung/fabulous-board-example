@@ -5,3 +5,4 @@
 !caravel/demo/
 *.mpy
 *.rules.verible_lint
+compile_commands.json
