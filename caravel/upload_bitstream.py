@@ -3,24 +3,30 @@
 import time
 
 from modules.board import Board
-from modules.myspi import SPI
 
 
 def run():
+    """Function to be run on the Nucleo board.
+
+    Needs the correct firmware to be
+    operational
+    """
     Board.set_voltage(1.6)
 
     board = Board()
 
     board.startup_sequence()
 
-    # use external clock for configuration
     board.set_wishbone_clock()
-    # board.set_external_clock()
 
     board.load_bitstream("bitstream.bin")
 
+    board.start_gpio_configuring()
+
     board.reset_user_logic()
 
-    print("Sleep for one second.")
-    time.sleep(1)
+    print("Sleep for ten seconds.")
+
+    time.sleep(10)
+
     board.print_fpga_data(100)
