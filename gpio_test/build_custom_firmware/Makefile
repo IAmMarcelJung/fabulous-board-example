@@ -29,7 +29,7 @@ gpio_sim: gpio_config_def.py gpio_config_io.py gen_config_header
 %.bin: %.elf
 	$(TOOLCHAIN_PATH)$(TOOLCHAIN_PREFIX)-objcopy -O binary $< $@
 
-flash_caravel: $(FIRMWARE_FILE)  check hex $(BITSTREAM_HEADER)
+flash_caravel: $(FIRMWARE_FILE) hex $(BITSTREAM_HEADER)
 	@echo
 	@echo "Start flashing Caravel."
 	python3 ../util/caravel_hkflash.py  $<
