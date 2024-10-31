@@ -19,7 +19,7 @@ def run():
 
     board.set_wishbone_clock()
 
-    board.load_bitstream("bitstream.bin")
+    board.transmit_bitstream("bitstream.bin")
 
     board.start_gpio_configuring()
 

@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
-import time
-from machine import Pin, SoftSPI, sleep, SPI
-
-# from nucleo_api import Test
+from machine import Pin, SoftSPI, SPI
+from typing import List
 
 
 CARAVEL_PASSTHRU = 0xC4
@@ -67,7 +65,14 @@ class SPIError(Exception):
 
 
 class MySPI:
-    def __init__(self, board="nucleo", enabled=True):
+    def __init__(self, board: str = "nucleo", enabled: bool = True) -> None:
+        """Initialize the MySPI class
+
+        :param board: The board to be used (Default is "nucleo").
+        :type board: str
+        :param enabled: A flag to signalize whether the SPI will be enabled or
+        not (Default is True).
+        """
         cs = "SPI5_CS"
         if board == "esp":
             cs = 15
@@ -105,34 +110,34 @@ class MySPI:
                 self.miso = Pin(
                     "SPI5_MOSI", mode=Pin.IN, pull=None
                 )  # PF8 = IO[1] = caravel output
-            self.spi = None
+            self.spi = SPI()
 
-    def write(self, buf):
+    def write(self, buf: List[int]) -> None:
+        """Write the given buffer.
+
+        :param buf: The buffer to be written.
+        :type buf:
+        """
         txdata = bytearray(buf)
         self.cs.value(0)
         self.spi.write(txdata)
         self.cs.value(1)
 
-    def exchange(self, buf, n):
+    def exchange(self, buf: List[int], n_bytes: int) -> bytearray:
+        """Exchange data between the peripheral and the controller.
+
+        :param buf: the buffer to transmitted.
+        :type buf: List[int]
+        :param n_bytes: The number of bytes to be exchanged.
+        :type n_null_bytes: int
+        """
 
         txdata = bytearray(buf)
-        txdata += "\0" * (n)
-        m = len(txdata)
-        rxdata = bytearray(m)
+        txdata += b"\0" * (n_bytes)
+        tx_data_len = len(txdata)
+        rxdata = bytearray(tx_data_len)
 
         self.cs.value(0)
         self.spi.write_readinto(txdata, rxdata)
         self.cs.value(1)
-        return rxdata[m - n : m]
-
-    def set_gpio(self, value):
-        for i in range(4):
-            self.write([CARAVEL_STREAM_WRITE, 0x6D - i, (value >> (8 * i)) & 0xFF])
-
-    def set_mprj_mode(self, io, value):
-        self.write([CARAVEL_STREAM_WRITE, 0x1D + 2 * io + 0, (value >> 8) & 0x1F])
-        self.write([CARAVEL_STREAM_WRITE, 0x1D + 2 * io + 1, value & 0xFF])
-
-    def yeet_mprj(self):
-        self.write([CARAVEL_STREAM_WRITE, 0x13, 1])
-        time.sleep(0.1)
+        return rxdata[tx_data_len - n_bytes : tx_data_len]

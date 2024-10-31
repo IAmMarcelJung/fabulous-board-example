@@ -29,6 +29,11 @@ from modules.myspi import (
     CARAVEL_SPI_REG_HKSPI_DISABLE_DEFAULT_VALUE,
 )
 from machine import Pin
+from nucleo_api import ProgSupply
+
+BITS_IN_BYTE = 8
+BITS_IN_WORD = 32
+BYTES_IN_WORD = 4
 
 
 class Board:
@@ -41,7 +46,8 @@ class Board:
         fpga_sdata="IO_11",
         fpga_rx="IO_12",
         fpga_rxled="IO_13",
-        fpga_rst="IO_14",
+        fpga_rst="IO_37",
+        config_start="IO_13",
         kind="nucleo",
         fpga_wclk=None,
         fpga_wdata=None,
@@ -51,9 +57,14 @@ class Board:
         self.fpga_clksel1 = Pin(fpga_clksel1, mode=Pin.OUT, value=0)
         self.fpga_sclk = Pin(fpga_sclk, mode=Pin.OUT, value=0)
         self.fpga_sdata = Pin(fpga_sdata, mode=Pin.OUT, value=0)
-        self.fpga_rx = Pin(fpga_rx, mode=Pin.OUT, value=1)
-        self.fpga_rxled = Pin(fpga_rxled, mode=Pin.IN, pull=0)
+        self.fpga_rx = Pin(fpga_rx, mode=Pin.IN, pull=0)
+        if config_start != "IO_13":
+            self.fpga_rxled = Pin(fpga_rxled, mode=Pin.IN, pull=0)
+        else:
+            self.fpga_rxled = Pin("IO_18", mode=Pin.IN, pull=0)
+
         self.fpga_rst = Pin(fpga_rst, mode=Pin.OUT, value=0)
+        self.config_start = Pin(config_start, mode=Pin.OUT, value=0)
 
         self.fpga_wclk = fpga_wclk
         self.fpga_wdata = fpga_wdata
@@ -63,8 +74,13 @@ class Board:
         self.external_clock = False
 
     @staticmethod
-    def set_voltage(voltage):
-        from nucleo_api import ProgSupply
+    def set_voltage(voltage: int) -> None:
+        """Set the the core voltage for caravel and the user design.
+
+        :param voltage: The core voltage to be set for caravel and the user
+        design.
+        :type voltage: int
+        """
 
         supply = ProgSupply()
         R2 = 360 / ((voltage / 1.25) - 1)
@@ -76,24 +92,16 @@ class Board:
         supply.write_1v8(Pval)
         time.sleep(1)
 
-    def startup_sequence(self, print_data=False):
+    def startup_sequence(self, check_and_print_data=False):
+        """The startup sequence to which checks the Caravel registers and
+        initializes the SPI
+
+        :param check_and_print_data: Flag to show whether to print the data or
+        not (Default is False).
+        """
         print("Powering up...")
-        # CPU reset
-        # self.slave.write([CARAVEL_REG_WRITE, CARAVEL_SPI_REG_CPU_RESET, 0x01])
-        # print("Sleeping after CPU reset...")
-        # time.sleep(1)
-        # self.slave.write([CARAVEL_REG_WRITE, CARAVEL_SPI_REG_CPU_RESET, 0x00])
-        # print("Sleeping after CPU disable reset...")
-        # time.sleep(1)
 
-        # HKSPI disable
-        # self.slave.write([CARAVEL_REG_WRITE, CARAVEL_SPI_REG_HKSPI_DISABLE, 0x00])
-
-        # in some cases, you may need to comment or uncomment this line
-        # self.slave.write([CARAVEL_REG_WRITE, CARAVEL_SPI_REG_CPU_RESET, 0x00])
-        # ------------
-
-        if print_data:
+        if check_and_print_data:
             print(" ")
             print("Caravel data:")
             self._read_print_and_check_reg(
@@ -158,71 +166,99 @@ class Board:
                 "PLL feedback divider",
                 CARAVEL_SPI_REG_PLL_FEEDBACK_DIVIDER_DEFAULT_VALUE,
             )
-        # disable HKSPI
-
-        # self.slave.write([CARAVEL_REG_WRITE, CARAVEL_SPI_REG_HKSPI_DISABLE, 0x00])
 
         self.slave.__init__(self.kind, enabled=False)
 
-    def bitbang(self, data, ctrl_word):
-        self._tog_clk_falling_edge()
-        for i, byte in enumerate(data):
-            for j in range(8):
-                self.fpga_sdata.value((byte >> (7 - j)) & 0x1)
+    def bitbang(self, data: bytes, ctrl_word: int) -> None:
+        """Transmit data using a custom bitbang protocol.
+
+        :param data: The data to be transmitted.
+        :ctrl_word: The control word to be used for the transmission.
+        """
+        self._set_clk_falling_edge()
+        for byte_pos, byte in enumerate(data):
+            for bit_pos in range(BITS_IN_BYTE):
+                self.fpga_sdata.value((byte >> ((BITS_IN_BYTE - 1) - bit_pos)) & 0x1)
                 self.fpga_sclk.value(1)
-                self._tog_clk_rising_edge()
-                self.fpga_sdata.value((ctrl_word >> (31 - (8 * (i % 4) + j))) & 0x1)
+                self._set_clk_rising_edge()
+                self.fpga_sdata.value(
+                    (
+                        ctrl_word
+                        >> (
+                            (BITS_IN_WORD - 1)
+                            - (BITS_IN_BYTE * (byte_pos % BYTES_IN_WORD) + bit_pos)
+                        )
+                    )
+                    & 0x1
+                )
                 self.fpga_sclk.value(0)
-                self._tog_clk_falling_edge()
-            if (i % 100) == 0:
-                print("{}".format(i))
+                self._set_clk_falling_edge()
+            if (byte_pos % 100) == 0:
+                print("{}".format(byte_pos))
 
     def disable_bitbang(self):
+        """Disable bitbang by sending the control word FAB0."""
         ctrl_word = 0x0000FAB0
         data = bytes(0)
         self.bitbang(data, ctrl_word)
 
-    def load_bitstream(self, bitstream):
-        # load bitstream, check receive LED
+    def transmit_bitstream(self, bitstream_file: str) -> None:
+        """Transmit the bitstream to the FPGA.
+
+        :param bitstream_file: The file containing the bitstream to be transmitted.
+        :type bitstream_file:
+        """
+        # Set the control word to enable bitbang
         ctrl_word = 0x0000FAB1
+
         # make sure we start desynced
         data = bytes(0xFF for _ in range(128))
-        # last_rxled = self.fpga_rxled.value()
-        with open(bitstream, mode="rb") as f:
+
+        with open(bitstream_file, mode="rb") as f:
             data += f.read()
         self.bitbang(data, ctrl_word)
 
-    def load_image_data(self, image):
-        self.fpga_rst.value(1)
-        time.sleep(0.01)
-        self.fpga_rst.value(0)
+    def load_image_data(self, image_file: str) -> None:
+        """Load the image data onto the FPGA.
+
+        :param image_file: The file containing the image data.
+        :type image_file: str
+        """
+        self.reset_user_logic()
 
         idx = 0
         wclk = False
-        with open(image, mode="rb") as f:
+        with open(image_file, mode="rb") as f:
+            # Read the file in in chunks of 256 bytes
             while True:
                 chunk = f.read(256)
                 if len(chunk) == 0:
                     break
-                for j in range(len(chunk) * 8):
-                    byte = chunk[j // 8]
-                    self.fpga_wdata.value((byte >> (7 - (j % 8)) & 0x1))
+                for bit_pos in range(len(chunk) * BITS_IN_BYTE):
+                    byte = chunk[bit_pos // BITS_IN_BYTE]
+                    self.fpga_wdata.value(
+                        (byte >> ((BITS_IN_BYTE - 1) - (bit_pos % BITS_IN_BYTE)) & 0x1)
+                    )
                     wclk = not wclk
                     self.fpga_wclk.value(wclk)
                 idx += 1
                 print("wr {}".format(idx))
 
-    def print_fpga_data(self, n_cycles):
+    def print_fpga_data(self, n_cycles: int) -> None:
+        """Print the data read from the FPGA pins.
+
+        :param n_cycles: The number of cycles to print the data.
+        :type n_cycles: int
+        """
         if self.kind == "nucleo":
             fpga_data = [
                 Pin("IO_{}".format(i), mode=Pin.IN)
-                for i in range(15, self.max_gpio_num + 1)
+                for i in range(14, self.max_gpio_num - 3)
             ]
         else:
             fpga_data = [Pin(i, mode=Pin.IN) for i in range(25, 28)]
 
         for _ in range(n_cycles):
-            # self.fpga_rst.value(1 if i < 10 else 0)
             self.fpga_clk.value(0)
             time.sleep(0.005)
             self.fpga_clk.value(1)
@@ -230,151 +266,87 @@ class Board:
             for k, p in enumerate(fpga_data):
                 if p.value():
                     b |= 1 << k
-            print("data: {:023b}".format(b))
+            print("data: {:020b}".format(b))
             time.sleep(0.005)
 
     def reset_user_logic(self):
+        """Reset the user logic by strobing the reset pin
+
+        Reset pin of the user logic has to be the same as set here.
+        """
         self.fpga_rst.value(1)
         time.sleep(0.01)
         self.fpga_rst.value(0)
+        time.sleep(0.01)
+
+    def set_reset_user_logic_value(self, value):
+        self.fpga_rst.value(value)
+
+    def start_gpio_configuring(self):
+        """Start the gpio configuration by strobing the associated pin.
+
+        The pin of the user logic has to be the same as set here.
+        """
+        self.config_start.value(1)
+        time.sleep(0.01)
+        self.config_start.value(0)
 
     def set_external_clock(self):
+        """Set the clock select inputs so that the external clock is used in the
+        FPGA"""
         self.external_clock = True
         self.fpga_clksel0(0)
         self.fpga_clksel1(0)
 
     def set_wishbone_clock(self):
+        """Set the clock select inputs so that the wishbone clock is used in the
+        FPGA"""
         self.external_clock = False
         self.fpga_clksel0(1)
         self.fpga_clksel1(0)
 
     def set_user_clock(self):
+        """Set the clock select inputs so that the user clock is used in the
+        FPGA"""
         self.external_clock = False
         self.fpga_clksel0(1)
         self.fpga_clksel1(1)
 
-    def check_single_output_pin(self, pin, expected):
-        """
-        Check if a single output pin matches the expected value.
-
-        :param pin: The pin to be checked.
-        :param expected: The expected value.
-        """
-        failed = False
-        actual = Pin(f"IO_{pin}", mode=Pin.IN).value()
-        if actual != expected:
-            failed = True
-            print(f"IO_{pin} failed! Expected {expected}, got {actual}.")
-        # else:
-        #    print(f"IO_{pin} succeeded")
-
-        return failed
-
-    def run_test_procedure(self, output, inputs):
-        """
-        Run the following test procedure:
-        set all inputs to 0
-        check output for 0
-        set all inputs to 1
-        check output for 0
-        set each input to 1 in 3 cycles
-        check output for 1
-
-        :param output: The output pin to be checked.
-        :param inputs: The input pins to change in the procedure."
-        """
-        succeeded = True
-        if not self.check_test_pattern(output, 0, inputs, [0, 0, 0]):
-            succeeded = False
-        if not self.check_test_pattern(output, 0, inputs, [1, 1, 1]):
-            succeeded = False
-        if not self.check_test_pattern(output, 1, inputs, [1, 0, 0]):
-            succeeded = False
-        if not self.check_test_pattern(output, 1, inputs, [0, 1, 0]):
-            succeeded = False
-        if not self.check_test_pattern(output, 1, inputs, [0, 0, 1]):
-            succeeded = False
-        return succeeded
-
-    def check_test_pattern(self, output, expected, inputs, test_pattern):
-        succeeded = True
-        self._tog_clk(0.1)
-        for i, input in enumerate(inputs):
-            Pin(f"IO_{input}", mode=Pin.IN, value=test_pattern[i])
-        if self.check_single_output_pin(output, expected):
-            print(
-                f"Failed for pattern [{test_pattern[0]}, {test_pattern[1]}, {test_pattern[2]}]."
-            )
-            succeeded = False
-        return succeeded
-
-    def check_output_pins_after_reset(self, input_pin):
-        """
-        Check if the output pins have the same value as the input pin.
-        A suitable bitstream is need for this to succeed.
-
-        :param input_pin: The input pin which will be ignored here.
-        """
-        failed = False
-
-        self.fpga_rst.value(1)
-        time.sleep(0.01)
-        print(f"Checking for 0 after reset:")
-        for i in range(15, self.max_gpio_num + 1):
-            if i is not input_pin:
-                if self.check_single_output_pin(i, 0):
-                    failed = True
-
-        self.fpga_rst.value(0)
-        time.sleep(0.01)
-        return failed
-
-    def run_check_io(self, n_cycles):
-        """
-        Run n cycles of  test procedure.
-
-        :param n_cycles: The number of cycles to run.
-        """
-
-        failed = False
-        for n in range(n_cycles):
-            print(f"Test run {n}")
-            for output in range(15, self.max_gpio_num + 1):
-                inputs = []
-                for input in range(1, 4):
-                    tmp_input = (output + input) % self.max_gpio_num
-                    inputs.append(tmp_input)
-                if not self.run_test_procedure(output, inputs):
-                    failed = True
-
-        if failed:
-            print("GPIO test failed.")
-        else:
-            print("GPIO test succeeded.")
-
-    def _tog_clk(self):
+    def _set_clk_rising_edge(self):
+        """Set a rising edge on the  fpga clock."""
         if self.external_clock:
             self.fpga_clk.value(0)
             self.fpga_clk.value(1)
 
-    def _tog_clk_rising_edge(self):
-        if self.external_clock:
-            self.fpga_clk.value(0)
-            self.fpga_clk.value(1)
-
-    def _tog_clk_falling_edge(self):
+    def _set_clk_falling_edge(self):
+        """Set a falling edge on the fpga clock."""
         if self.external_clock:
             self.fpga_clk.value(1)
             self.fpga_clk.value(0)
 
     def _check_retval(self, retval, expected, reg):
+        """Check if a return value matches the expected value.
+
+        :param retval: The return value to be checked.
+        :type retval:
+        """
         if retval not in (expected, None):
             raise SPIError(
                 f"Value read ({hex(retval)}) from register ({reg}) did not match the expected value ({hex(expected)})."
             )
 
-    def _read_print_and_check_reg(self, reg, n_bytes, data_name, expected):
+    def _read_print_and_check_reg(self, reg, n_bytes, register_name, expected_value):
+        """Read, print and check the given register.
 
+        :param reg: The register to be read, printed and checked.
+        :type reg: int
+        :param n_bytes: The number of bytes to be exchanged.
+        :type n_bytes: int
+        :param register_name: The name of the register.
+        :type register_name: str
+        :param expected_value: The expected register value.
+        :type expected_value: int
+        """
         data = 0
         if n_bytes == 0:
             raise ValueError("Need to read at least one byte.")
@@ -384,7 +356,7 @@ class Board:
         else:
             data = self.slave.exchange([CARAVEL_STREAM_READ, reg], n_bytes)
         data = int.from_bytes(data, "big")
-        print(f"   {data_name} = {hex(data)}")
+        print(f"   {register_name} = {hex(data)}")
 
-        # if reg != CARAVEL_SPI_REG_DCO_TRIM_0:
-        #    self._check_retval(data, expected, data_name)
+        if reg != CARAVEL_SPI_REG_DCO_TRIM_0:
+            self._check_retval(data, expected_value, register_name)

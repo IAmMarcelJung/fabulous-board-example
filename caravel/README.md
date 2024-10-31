@@ -10,7 +10,7 @@ Connect a USB cable to `CN1`.
 
 > [!IMPORTANT]
 > Be sure to wait a few seconds, until the HAT is fully powered on and
-> the Power LED is on. Otherwise running the bitstream may silently
+> the Power LED is on. Otherwise, running the bitstream may silently
 > fail.
 
 Run this command if the GPIO test process has already been executed and the
@@ -31,8 +31,6 @@ This directory contains Bash scripts to load and execute Micropython scripts on
 the Nucleo board which are used to upload a bitstream and other data onto the FPGA.
 Here is a short description of the files:
 
-- ```check_io.py```: Run a check to see if the IO configuration worked on all
-  pins. Requires a suitable bitstream.
 - ```copy_and_run_vga_demo.py```: Copy all files needed to run the VGA demo
   without a host PC.
 - ```copy_main_for_demo_autostart.sh```: Copy a customized ```main.py``` which
@@ -74,8 +72,8 @@ The host PC has to be connected over the ST-LINK USB Micro-B connector  `CN1`
 to the Nucleo board.
 
 > [!IMPORTANT]
-> Be sure to wait a few seconds, until the GPIO configuration is complete!
-> Otherwise running the bitstream may silently fail.
+> Be sure to wait a few seconds until the Nucleo board is powered up.
+> Otherwise, running the bitstream may silently fail.
 
 If the GPIOs have not been checked for timing failures for the currently used
 part, you have to follow [this guide](./gpio_test/nucleo_firmware/) first.
@@ -117,4 +115,4 @@ to your design name (e.g. `sequential_16bit_en`). Also adjust
 mpremote mount . exec "import caravel_spi; caravel_spi.run()"
 ```
 
-Of course you can also come up with your own module.
+Of course, you can also come up with your own module.

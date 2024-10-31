@@ -22,11 +22,9 @@ def run():
 
     board.startup_sequence()
 
-    # use external clock for configuration
     board.set_wishbone_clock()
-    # board.set_external_clock()
 
-    board.load_bitstream()
+    board.transmit_bitstream("bitstream.bin")
 
     print("Sleep for five seconds.")
     time.sleep(5)
