@@ -3,7 +3,7 @@
 
 #define WAIT 50000
 
-void delay(const int d);
+void delay(const int clock_cycles);
 
 void bb_mode();
 

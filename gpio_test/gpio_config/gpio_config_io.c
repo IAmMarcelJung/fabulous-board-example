@@ -3,11 +3,11 @@
 #include <csr.h>
 #include <gpio_config_data.h>
 
-void delay(const int d) {
+void delay(const int clock_cycles) {
 
     /* Configure timer for a single-shot countdown */
     reg_timer0_config = 0;
-    reg_timer0_data = d;
+    reg_timer0_data = clock_cycles;
     reg_timer0_config = 1;
 
     // Loop, waiting for value to reach zero
