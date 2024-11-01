@@ -13,49 +13,49 @@ C_USER_IN_NOPULL = 7
 C_USER_OUT = 8
 
 config_h = [
-    C_USER_BIDIR_WPD,  # 37
-    C_USER_BIDIR_WPD,  # 36
-    C_USER_BIDIR_WPD,  # 35
-    C_USER_BIDIR_WPD,  # 34
-    C_USER_BIDIR_WPD,  # 33
-    C_USER_BIDIR_WPD,  # 32
-    C_USER_BIDIR_WPD,  # 31
-    C_USER_BIDIR_WPD,  # 30
-    C_USER_BIDIR_WPD,  # 29
-    C_USER_BIDIR_WPD,  # 28
-    C_USER_BIDIR_WPD,  # 27
-    C_USER_BIDIR_WPD,  # 26
-    C_USER_BIDIR_WPD,  # 25
-    C_USER_BIDIR_WPD,  # 24
-    C_USER_BIDIR_WPD,  # 23
-    C_USER_BIDIR_WPD,  # 22
-    C_USER_BIDIR_WPD,  # 21
-    C_USER_BIDIR_WPD,  # 20
-    C_USER_BIDIR_WPD,  # 19
+    C_USER_BIDIR_WPU,  # 37
+    C_USER_BIDIR_WPU,  # 36
+    C_USER_BIDIR_WPU,  # 35
+    C_USER_BIDIR_WPU,  # 34
+    C_USER_BIDIR_WPU,  # 33
+    C_USER_BIDIR_WPU,  # 32
+    C_USER_BIDIR_WPU,  # 31
+    C_USER_BIDIR_WPU,  # 30
+    C_USER_BIDIR_WPU,  # 29
+    C_USER_BIDIR_WPU,  # 28
+    C_USER_BIDIR_WPU,  # 27
+    C_USER_BIDIR_WPU,  # 26
+    C_USER_BIDIR_WPU,  # 25
+    C_USER_BIDIR_WPU,  # 24
+    C_USER_BIDIR_WPU,  # 23
+    C_USER_BIDIR_WPU,  # 22
+    C_USER_BIDIR_WPU,  # 21
+    C_USER_BIDIR_WPU,  # 20
+    C_USER_BIDIR_WPU,  # 19
 ]
 
 del config_h[NUM_IO:]
 
 config_l = [
-    C_DISABLE,  # 0
+    C_ALL_ONES,  # 0
     C_MGMT_OUT,  # 1
     C_MGMT_IN,  # 2
     C_MGMT_IN,  # 3
     C_MGMT_IN,  # 4
     C_MGMT_IN,  # 5
     C_MGMT_OUT,  # 6
-    C_USER_BIDIR_WPD,  # 7
-    C_USER_BIDIR_WPD,  # 8
-    C_USER_BIDIR_WPD,  # 9
-    C_USER_BIDIR_WPD,  # 10
-    C_USER_BIDIR_WPD,  # 11
-    C_USER_BIDIR_WPD,  # 12
-    C_USER_BIDIR_WPD,  # 13
-    C_USER_BIDIR_WPD,  # 14
-    C_USER_BIDIR_WPD,  # 15
-    C_USER_BIDIR_WPD,  # 16
-    C_USER_BIDIR_WPD,  # 17
-    C_USER_BIDIR_WPD,  # 18
+    C_USER_BIDIR_WPU,  # 7
+    C_USER_BIDIR_WPU,  # 8
+    C_USER_BIDIR_WPU,  # 9
+    C_USER_BIDIR_WPU,  # 10
+    C_USER_BIDIR_WPU,  # 11
+    C_USER_BIDIR_WPU,  # 12
+    C_USER_BIDIR_WPU,  # 13
+    C_USER_BIDIR_WPU,  # 14
+    C_USER_BIDIR_WPU,  # 15
+    C_USER_BIDIR_WPU,  # 16
+    C_USER_BIDIR_WPU,  # 17
+    C_USER_BIDIR_WPU,  # 18
 ]
 
 del config_l[NUM_IO:]
