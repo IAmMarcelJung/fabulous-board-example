@@ -35,10 +35,14 @@ static volatile uint32_t data_reg_shadow = 0u;
 static void transmit_byte(uint8_t data_byte, uint8_t ctrl_word_byte);
 
 #define RESET_REGISTER REGISTER_3_DATA_BIT_POS
-// Use Gpio 36 and 37 since the probality that they can be configured as
-// management output pins is high
-#define S_CLK_REGISTER REGISTER_4_DATA_BIT_POS
-#define S_DATA_REGISTER REGISTER_5_DATA_BIT_POS
+#define S_CLK_REGISTER REGISTER_10_DATA_BIT_POS
+#define S_DATA_REGISTER REGISTER_11_DATA_BIT_POS
+
+// NOTE:
+// Make sure to adjust the hardware register depending on which GPIOs are used:
+//      0-31 -> reg_mprj_gpiol,
+//      32-37 -> reg_mprj_gpioh
+#define HARDWARE_REGISTER reg_mprj_datal
 
 void bitstream_init(GPIO *const gpio) { gpio_init(gpio); }
 
@@ -53,7 +57,7 @@ void upload_bitstream(uint8_t const *const bitstream_data,
     // Reset user logic
 #ifndef GTEST
     data_reg_shadow |= REGISTER_DATA_BIT(RESET_REGISTER);
-    reg_mprj_datah = data_reg_shadow;
+    reg_mprj_datal = data_reg_shadow;
 #endif
     uint32_t ctrl = CTRL_WORD_ENABLE_BITBANG;
 
@@ -88,7 +92,8 @@ void upload_bitstream(uint8_t const *const bitstream_data,
     }
 
 #ifndef GTEST
-    reg_mprj_datah = 0u;
+    clear_bit(S_CLK_REGISTER, &HARDWARE_REGISTER);
+    clear_bit(S_DATA_REGISTER, &HARDWARE_REGISTER);
 #endif
 }
 
@@ -104,14 +109,14 @@ static void transmit_byte(uint8_t data_byte, uint8_t ctrl_word_byte) {
             data_reg_shadow |= REGISTER_DATA_BIT(S_DATA_REGISTER);
         else
             data_reg_shadow &= ~(REGISTER_DATA_BIT(S_DATA_REGISTER));
-        reg_mprj_datah = data_reg_shadow;
+        HARDWARE_REGISTER = data_reg_shadow;
 #endif
 
 #ifdef USE_FUNCTIONS
         set_gpio(PIN_SCLK);
 #else
         data_reg_shadow |= REGISTER_DATA_BIT(S_CLK_REGISTER);
-        reg_mprj_datah = data_reg_shadow;
+        HARDWARE_REGISTER = data_reg_shadow;
 #endif
 
         set = GET_BIT_AS_BOOL_FROM_BYTE(ctrl_word_byte, bit_pos);
@@ -123,13 +128,13 @@ static void transmit_byte(uint8_t data_byte, uint8_t ctrl_word_byte) {
             data_reg_shadow |= REGISTER_DATA_BIT(S_DATA_REGISTER);
         else
             data_reg_shadow &= ~(REGISTER_DATA_BIT(S_DATA_REGISTER));
-        reg_mprj_datah = data_reg_shadow;
+        HARDWARE_REGISTER = data_reg_shadow;
 #endif
 #ifdef USE_FUNCTIONS
         clear_gpio(PIN_SCLK);
 #else
         data_reg_shadow &= ~(REGISTER_DATA_BIT(S_CLK_REGISTER));
-        reg_mprj_datah = data_reg_shadow;
+        HARDWARE_REGISTER = data_reg_shadow;
 #endif
     }
     /*
