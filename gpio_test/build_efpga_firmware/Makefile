@@ -1,6 +1,5 @@
 # These need to be defined before including the Makefile
 # to set the values defined here in the included Makefile
-PATTERN := gpio_config_firmware
 FIRMWARE_FILE ?= $(PATTERN).hex
 BITSTREAM_FILE := $(CWD)../../output_files/bitstream.bin
 BITSTREAM_HEADER := $(CWD)../firmware_helpers/bitstream/bistream.h
@@ -11,6 +10,8 @@ BITSTREAM_CONVERSION_COMMAND := bin2header
 
 # Use 1.5V as the default voltage
 DEFAULT_VOLTAGE?=1.5
+
+PATTERN := gpio_config_firmware_$(SHUTTLE)
 
 ifeq (, $(shell which $(BITSTREAM_CONVERSION_COMMAND)))
 $(error "$(BITSTREAM_CONVERSION_COMMAND) not installed. Get it from: https://github.com/AntumDeluge/bin2header?tab=readme-ov-file")
@@ -24,7 +25,7 @@ check: gpio_config_def.py gpio_config_io.py gen_config_header
 	python3 ../gpio_config/gpio_config_checker.py
 	@echo "$(GREEN)Done checking GPIO configuration.$(RESET_COLOR)"
 
-gpio_sim: gpio_config_def.py gpio_config_io.py gen_config_header
+gpio_sim: check_part check_voltage check_shuttle copy_gpio_config_io copy_config_file gpio_config_def.py gpio_config_io.py gen_config_header
 	@echo
 	@echo "Simulating GPIO configuration."
 	python3 ../gpio_config/gpio_config_simulator.py
