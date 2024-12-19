@@ -9,6 +9,7 @@ import asyncio
 from asyncio import Event
 from io import StringIO
 from typing import Callable, Any, Coroutine
+from termcolor import colored
 
 
 SR_WIP = 0b00000001  # Busy/Work-in-progress bit
@@ -59,6 +60,7 @@ FIRMWARE_WRITE = True
 FIRMWARE_VERIFY = False
 
 GPIO_UART_EN_POS = 8
+GPIO_RX_LED_POS = 10
 GPIO_TX_LED_POS = 11
 
 
@@ -72,8 +74,8 @@ class Led:
         """
 
         self.gpio = gpio
-        self.gpio
         self.led = False
+        self.gpio_reg = 0b000100000000
 
     async def toggle(self, delay: float):
         """Toggle the led once and wait for the specified delay.
@@ -82,10 +84,23 @@ class Led:
         :type delay: float
         """
         self.led = not self.led
-        output = 0b000100000000 | int(self.led) << GPIO_TX_LED_POS
+        self.set_value(GPIO_TX_LED_POS, self.led)
+        await asyncio.sleep(delay)
+
+    def set_value(self, led_pos: int, value: bool):
+        """Set the LED to the specified value.
+
+        :param led_pos: The bit position of the LED.
+        :type led_pos:
+        :param value: The value to which the LED is set
+        :type value: bool
+        """
+        if not value:
+            self.gpio_reg |= 1 << led_pos
+        else:
+            self.gpio_reg &= ~(1 << led_pos)
         if self.gpio:
-            self.gpio.write(output)
-            await asyncio.sleep(delay)
+            self.gpio.write(self.gpio_reg)
 
     async def toggle_until_stop_event(self, delay: float, stop_event: Event):
         """Toggle the led until the stop event is set.
@@ -124,10 +139,11 @@ class Memory:
         """
         self.slave.write([CARAVEL_PASSTHRU, command_id])
 
-    async def erase(self, stop_event) -> None:
+    async def erase(self, stop_event: asyncio.Event) -> None:
         """Erase the flash memory.
 
         :param stop_event: The stop event to set when erasing is done.
+        :type stop_event: asyncio.Event
         """
         print("Resetting Flash...")
         self.slave.write([CARAVEL_PASSTHRU, CMD_RESET_CHIP])
@@ -140,7 +156,7 @@ class Memory:
         if jedec[0:1] != bytes.fromhex("ef"):
             print("Winbond flash not found")
             stop_event.set()
-            sys.exit()
+            raise MemoryError
 
         print("Erasing chip...")
         self.write_passthrough_command(CMD_WRITE_ENABLE)
@@ -324,7 +340,7 @@ class MyFtdi(Ftdi):
         """Reset the CPU over an SPI command."""
         self.slave.write([CARAVEL_REG_WRITE, 0x0B, 0x00])
 
-    def print_manufacturer_and_product_id(self) -> None:
+    def print_manufacturer_product_and_project_id(self) -> None:
         """Print the manufacturer and product ID."""
         print(" ")
         print("Caravel data:")
@@ -437,9 +453,21 @@ async def main() -> None:
     file_path = get_file_path_from_args(sys.argv)
 
     ftdi = MyFtdi()
+    ftdi.led.set_value(GPIO_RX_LED_POS, False)
     ftdi.enable_cpu_reset()
-    ftdi.print_manufacturer_and_product_id()
-    await toggle_led_during_ftdi_action(ftdi.memory.erase, ftdi, 0.5)
+    ftdi.print_manufacturer_product_and_project_id()
+    try:
+        await toggle_led_during_ftdi_action(ftdi.memory.erase, ftdi, 0.5)
+    except MemoryError:
+        print(
+            colored(
+                "Please power cycle the board and try flashing again"
+                + "immediately! Also check that the UART_EN jumper is not set.",
+                "red",
+            )
+        )
+        ftdi.led.set_value(GPIO_TX_LED_POS, False)
+        exit(1)
 
     await toggle_led_during_ftdi_action(
         ftdi.memory.firmware_action, ftdi, 0.025, file_path, FIRMWARE_WRITE
@@ -452,6 +480,7 @@ async def main() -> None:
     # This will finish almost instantly, no need to toggle the LED.
     stop_event = asyncio.Event()
     await ftdi.memory.firmware_action(file_path, FIRMWARE_VERIFY, stop_event)
+    ftdi.led.set_value(GPIO_TX_LED_POS, False)
 
     ftdi.disable_cpu_reset()
     ftdi.spi.close(True)
