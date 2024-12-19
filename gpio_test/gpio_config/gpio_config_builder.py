@@ -17,9 +17,24 @@ sys.path.append(os.getcwd())
 from gpio_config_def import *
 from gpio_config_io import *
 
+"""
+reg_mprj_xfer bit explanation:
+gpio xfer controls (7 bits) bit fields:
+    Bit     Function                Details
+-------------------------------------------------------------------------------------------------------------------------------
+    0       serial xfer/busy        Write 1 to apply configuration values to GPIO. Auto-zeroing. Read back value 1 = busy, 0 = idle
+    1       bitbang enable          1 = seral transfer bitbang mode enabled; 0 = bitbang mode disabled
+    2       bitbang resetn          0 = bit bang mode reset; 7 = bithang mode normal operation
+    3       bitbang load            0 = bit bang mode normal operation; 1 = latch configuration values
+    4       bitbang clock           0 -> 1 transition: Advance data in senal shift register by 1 bit in bitbang mode
+    5       bitbang data right      Value = data to apply to serial data right side shift register (GPIO 0 to 18) on next bitbang clock
+    6       bitbang data left       Value = data to apply to serial data left side shift register (GPIO 19 to 37) on next bitbang clock
+"""
 
 NUM_CONFIG_BITS = 13
-CONFIG_STREAM_TARGET_LEN = 247
+CONFIG_STREAM_TARGET_LEN = NUM_IO * NUM_CONFIG_BITS
+REG_MPRJ_XFER_DATA_LOW_CHAIN_POS = 5
+REG_MPRJ_XFER_DATA_HIGH_CHAIN_POS = 6
 
 
 def add_config_to_stream(stream: str, config: int, htv_type: int) -> str:
@@ -71,7 +86,6 @@ def add_config_to_stream(stream: str, config: int, htv_type: int) -> str:
         next_reg_stream = "1000000000000"
     else:
         next_reg_stream = "1100000000000"
-
     if htv_type == H_INDEPENDENT:
         next_reg_stream = next_reg_stream[:-1]
 
@@ -265,7 +279,9 @@ def build_config_byte_stream(stream_l: str, stream_h: str, n_bits: int) -> List[
     """
     config_stream = []
     for bit_pos in range(n_bits):
-        value = (int(stream_l[bit_pos]) << 5) + (int(stream_h[bit_pos]) << 6)
+        value = (int(stream_l[bit_pos]) << REG_MPRJ_XFER_DATA_LOW_CHAIN_POS) + (
+            int(stream_h[bit_pos]) << REG_MPRJ_XFER_DATA_HIGH_CHAIN_POS
+        )
         config_stream.append(0x06 + value)
 
     # Add zeros at the end of the stream to compensate for the IHTVs
