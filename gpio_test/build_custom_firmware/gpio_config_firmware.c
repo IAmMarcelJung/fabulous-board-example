@@ -13,7 +13,7 @@ int main() {
     reg_gpio_oe = 1;
     reg_gpio_out = 1;
 
-    blink(3, 2500000);
+    blink(6, 2500000);
 
     // Configure the IOs so the eFPGA has access to them
     reg_gpio_out = 1;
