@@ -62,34 +62,44 @@ def setup(arg_gpio_h, arg_gpio_l):
     #     print ("Fatal: incorrect -config value it has to be C_MGMT_OUT or C_MGMT_IN")
     #     sys.exit()
 
-    gpio_h=list()
-    gpio_l=list()
+    gpio_h = list()
+    gpio_l = list()
     # arg_gpio_h = args.gpio_h
-    arg_gpio_h = arg_gpio_h.replace('[','').replace(']','')
-    arg_gpio_h = arg_gpio_h.split(',')
-    for i,violation in enumerate(arg_gpio_h):
-        if violation == 'H_NONE': violation_type = H_NONE
-        elif violation == 'H_INDEPENDENT': violation_type = H_INDEPENDENT
-        elif violation == 'H_DEPENDENT': violation_type = H_DEPENDENT
-        else :
-            print (f"incorrect violation type inside provided argument gpio_h {arg_gpio_h} it has to be H_NONE or H_INDEPENDENT or H_DEPENDENT")
+    arg_gpio_h = arg_gpio_h.replace("[", "").replace("]", "")
+    arg_gpio_h = arg_gpio_h.split(",")
+    for i, violation in enumerate(arg_gpio_h):
+        if violation == "H_NONE":
+            violation_type = H_NONE
+        elif violation == "H_INDEPENDENT":
+            violation_type = H_INDEPENDENT
+        elif violation == "H_DEPENDENT":
+            violation_type = H_DEPENDENT
+        else:
+            print(
+                f"incorrect violation type inside provided argument gpio_h {arg_gpio_h} it has to be H_NONE or H_INDEPENDENT or H_DEPENDENT"
+            )
         #     sys.exit()
-        gpio_h.append([f'IO[{37-i}]',violation_type])
+        gpio_h.append([f"IO[{37-i}]", violation_type])
     # del gpio_h[args.num_io:]
     # if (args.debug):
     #     print(f"gpio_h {gpio_h}")
     # arg_gpio_l = args.gpio_l
-    arg_gpio_l = arg_gpio_l.replace('[','').replace(']','')
-    arg_gpio_l = arg_gpio_l.split(',')
+    arg_gpio_l = arg_gpio_l.replace("[", "").replace("]", "")
+    arg_gpio_l = arg_gpio_l.split(",")
     # python gpio_config_builder.py -gpio_h [H_NONE,H_DEPENDENT,H_INDEPENDENT,H_INDEPENDENT,H_INDEPENDENT,H_INDEPENDENT,H_INDEPENDENT,H_INDEPENDENT,H_DEPENDENT,H_INDEPENDENT,H_DEPENDENT,H_DEPENDENT,H_INDEPENDENT,H_INDEPENDENT,H_INDEPENDENT,H_INDEPENDENT,H_INDEPENDENT,H_INDEPENDENT,H_INDEPENDENT]  -gpio_l [H_NONE,H_DEPENDENT,H_DEPENDENT,H_INDEPENDENT,H_INDEPENDENT,H_DEPENDENT,H_DEPENDENT,H_INDEPENDENT,H_DEPENDENT,H_DEPENDENT,H_INDEPENDENT,H_DEPENDENT,H_DEPENDENT,H_INDEPENDENT,H_DEPENDENT,H_DEPENDENT,H_INDEPENDENT,H_INDEPENDENT,H_INDEPENDENT,H_INDEPENDENT,H_INDEPENDENT,H_INDEPENDENT] -n 8
-    for i,violation in enumerate(arg_gpio_l):
-        if violation == 'H_NONE': violation_type = H_NONE
-        elif violation == 'H_INDEPENDENT': violation_type = H_INDEPENDENT
-        elif violation == 'H_DEPENDENT': violation_type = H_DEPENDENT
-        else :
-            print (f"incorrect violation type inside provided argument gpio_l {arg_gpio_l} it has to be H_NONE or H_INDEPENDENT or H_DEPENDENT")
+    for i, violation in enumerate(arg_gpio_l):
+        if violation == "H_NONE":
+            violation_type = H_NONE
+        elif violation == "H_INDEPENDENT":
+            violation_type = H_INDEPENDENT
+        elif violation == "H_DEPENDENT":
+            violation_type = H_DEPENDENT
+        else:
+            print(
+                f"incorrect violation type inside provided argument gpio_l {arg_gpio_l} it has to be H_NONE or H_INDEPENDENT or H_DEPENDENT"
+            )
         #     sys.exit()
-        gpio_l.append([f'IO[{i}]',violation_type])
+        gpio_l.append([f"IO[{i}]", violation_type])
     # del gpio_l[args.num_io:]
     # if (args.debug):
     #     print(f"gpio_l {gpio_l}")
@@ -100,24 +110,24 @@ def build_stream_dependent(stream, config):
     s = ""
     if config == C_MGMT_OUT:
         # stream += '0b1100000001001'
-        s = stream + '1100000000001'
+        s = stream + "1100000000001"
     elif config == C_MGMT_IN:
-        s = stream + '1000000000011'
+        s = stream + "0010000000011"
     elif config == C_DISABLE:
-        s = stream + '0000000000000'
+        s = stream + "0000000000000"
     elif config == C_ALL_ONES:
-        s = stream + '1111111111111'
+        s = stream + "1111111111111"
     elif config == C_USER_BIDIR_WPU:
-        s = stream + '0100000000000'
+        s = stream + "0100000000000"
     elif config == C_USER_BIDIR_WPD:
-        s = stream + '0110000000000'
+        s = stream + "0110000000000"
     elif config == C_USER_IN_NP:
         # s = stream + '0010000000010'
-        s = stream + '0010000000011'
+        s = stream + "0010000000011"
     elif config == C_USER_OUT:
-        s = stream + '0110000000010'
+        s = stream + "0110000000010"
     else:
-        s = stream + '1100000000000'
+        s = stream + "1100000000000"
     return s
 
 
@@ -125,23 +135,23 @@ def build_stream_independent(stream, config):
     s = ""
     if config == C_MGMT_OUT:
         # stream += '110000000100'
-        s = stream + '110000000000'
+        s = stream + "110000000000"
     elif config == C_MGMT_IN:
-        s = stream + '100000000001'
+        s = stream + "001000000001"
     elif config == C_DISABLE:
-        s = stream + '000000000000'
+        s = stream + "000000000000"
     elif config == C_ALL_ONES:
-        s = stream + '111111111111'
+        s = stream + "111111111111"
     elif config == C_USER_BIDIR_WPU:
-        s = stream + '010000000000'
+        s = stream + "010000000000"
     elif config == C_USER_BIDIR_WPD:
-        s = stream + '011000000000'
+        s = stream + "011000000000"
     elif config == C_USER_IN_NP:
-        s = stream + '001000000001'
+        s = stream + "001000000001"
     elif config == C_USER_OUT:
-        s = stream + '00110000000010'
+        s = stream + "00110000000010"
     else:
-        s = stream + '110000000000'
+        s = stream + "110000000000"
     return s
 
 
@@ -149,25 +159,25 @@ def build_stream_none(stream, config, bypass):
     s = ""
     if config == C_MGMT_OUT:
         # stream += '1100000001001'
-        s = stream + '1100000000001'
+        s = stream + "1100000000001"
     elif config == C_MGMT_IN and bypass:
-        s = stream + '0010000000011'
+        s = stream + "0010000000011"
     elif config == C_MGMT_IN:
-        s = stream + '1000000000011'
+        s = stream + "0010000000011"
     elif config == C_DISABLE:
-        s = stream + '0000000001011'
+        s = stream + "0000000001011"
     elif config == C_ALL_ONES:
-        s = stream + '1111111111111'
+        s = stream + "1111111111111"
     elif config == C_USER_BIDIR_WPU:
-        s = stream + '0100000000000'
+        s = stream + "0100000000000"
     elif config == C_USER_BIDIR_WPD:
-        s = stream + '0110000000000'
+        s = stream + "0110000000000"
     elif config == C_USER_IN_NP:
-        s = stream + '0010000000010'
+        s = stream + "0010000000010"
     elif config == C_USER_OUT:
-        s = stream + '0110000000010'
+        s = stream + "0110000000010"
     else:
-        s = stream + '1100000000000'
+        s = stream + "1100000000000"
     return s
 
 
@@ -180,13 +190,14 @@ def build_stream_special(stream, config):
 def correct_dd_holds(stream, bpos):
     skip = False
     bits = list(stream)
-    for x in range(1,bpos):
-        if bits[x] == '0' and bits[x-1] == '1' and not skip:
-            bits[x] = '1'
+    for x in range(1, bpos):
+        if bits[x] == "0" and bits[x - 1] == "1" and not skip:
+            bits[x] = "1"
             skip = True
         else:
             skip = False
     return "".join(bits)
+
 
 # ------------------------------------------
 
@@ -231,9 +242,9 @@ def build_config(arg_gpio_h, arg_gpio_l, flag, bypass):
 
     n_bits = max(len(stream_h), len(stream_l))
     while len(stream_h) < n_bits:
-        stream_h = '0' + stream_h
+        stream_h = "0" + stream_h
     while len(stream_l) < n_bits:
-        stream_l = '0' + stream_l
+        stream_l = "0" + stream_l
 
     bpos_h = len(stream_h)
     bpos_l = len(stream_l)
@@ -272,11 +283,9 @@ def build_config(arg_gpio_h, arg_gpio_l, flag, bypass):
     # print("stream_l   = " + stream_l)
     # print("n_bits = {}".format(n_bits))
 
-
     # insert value of n_bits at the beginning of config_stream
     # value increased by one to match the length of the array
 
-    config_stream.insert(0, n_bits+1)
+    config_stream.insert(0, n_bits + 1)
 
     return config_stream
-
