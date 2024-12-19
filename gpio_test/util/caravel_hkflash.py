@@ -480,7 +480,7 @@ async def main() -> None:
     except MemoryError:
         logger.warning(
                 "Please power cycle the board and try flashing again"
-                + "immediately! Also check that the UART_EN jumper is not set.",
+                + " immediately! Also check that the UART_EN jumper is not set.",
         )
         ftdi.led.set_value(GPIO_TX_LED_POS, False)
         exit(1)
