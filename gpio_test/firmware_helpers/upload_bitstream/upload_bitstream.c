@@ -15,8 +15,8 @@
 
 // Use Gpio 36 and 37 since the probality that they can be configured as
 // management output pins is high
-#define PIN_SCLK GPIO_36
-#define PIN_SDATA GPIO_37
+#define PIN_SCLK GPIO_37
+#define PIN_SDATA GPIO_36
 
 #define CTRL_WORD_DISABLE_BITBANG 0x0000FAB0u
 #define CTRL_WORD_ENABLE_BITBANG 0x0000FAB1u
