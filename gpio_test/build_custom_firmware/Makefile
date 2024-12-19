@@ -9,6 +9,9 @@ GEN_CONFIG_HEADER_PREREQUISITE := gen_config_header
 DONT_STRIP_HEX_FILE := true
 BITSTREAM_CONVERSION_COMMAND := bin2header
 
+# Use 1.5V as the default voltage
+VOLTAGE?=1.5
+
 ifeq (, $(shell which $(BITSTREAM_CONVERSION_COMMAND)))
 $(error "$(BITSTREAM_CONVERSION_COMMAND) not installed. Get it from: https://github.com/AntumDeluge/bin2header?tab=readme-ov-file")
 endif
