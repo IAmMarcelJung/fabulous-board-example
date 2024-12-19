@@ -21,6 +21,7 @@ INCLUDES := \
 	-I../firmware_helpers/bitstream \
 	-I../firmware_helpers/register_actions \
 	-I../firmware_helpers/helpers \
+	-I../firmware_helpers/uart \
 	-I../firmware_helpers/global_defs
 
 SRC_FILES := \
@@ -33,6 +34,7 @@ SRC_FILES := \
 	$(THIS_MAKEFILE_DIR)../firmware_helpers/gpio/gpio.c \
 	$(THIS_MAKEFILE_DIR)../firmware_helpers/register_actions/register_actions.c \
 	$(THIS_MAKEFILE_DIR)../firmware_helpers/helpers/helpers.c \
+	$(THIS_MAKEFILE_DIR)../firmware_helpers/uart/software_uart.c \
 
 TOOLCHAIN_PREFIX := riscv64-unknown-elf
 PATTERN ?= config_io_o
@@ -41,8 +43,18 @@ PATTERN ?= config_io_o
 
 CONFIG_FILES_DIR := $(THIS_MAKEFILE_DIR)gpio_config_files
 
-VOLTAGE_STR := $(subst .,_,$(VOLTAGE))
+# Set VOLTAGE_STR based on whether VOLTAGE or DEFAULT_VOLTAGE is defined
+ifndef VOLTAGE
+  ifdef DEFAULT_VOLTAGE
+	VOLTAGE_STR := $(subst .,_,$(DEFAULT_VOLTAGE))
+  else
+	$(error "Neither VOLTAGE nor DEFAULT_VOLTAGE is defined.")
+  endif
+else
+  VOLTAGE_STR := $(subst .,_,$(VOLTAGE))
+endif
 CONFIG_FILE_PATTERN := gpio_config_def
+IO_CONFIG_FILE_PATTERN := gpio_config_io
 PART_OUTPUT_FILE := $(CONFIG_FILE_PATTERN)_part_$(PART)_$(VOLTAGE_STR)_V.py
 PART_OUTPUT_DIR := part_$(PART)
 CONFIG_FILE_TARGET = $(CONFIG_FILES_DIR)/$(PART_OUTPUT_DIR)/$(PART_OUTPUT_FILE)
@@ -166,13 +178,25 @@ endif
 
 check_part:
 ifndef PART
-	$(error "PART not defined.  Please add 'PART=<part_id>'")
+	$(error "PART not defined. Please add 'PART=<part_id>'")
+endif
+
+check_shuttle:
+ifndef SHUTTLE
+	$(error "SHUTTLE not defined. Please add 'SHUTTLE=<shuttle>'")
 endif
 
 check_voltage:
-ifndef VOLTAGE
-	$(error "VOLTAGE not defined.  Please add 'VOLTAGE=<voltage>'")
-endif
+	@if [ -z "$(VOLTAGE)" ]; then \
+		if [ -n "$(DEFAULT_VOLTAGE)" ]; then \
+			echo "Using the default voltage of $(DEFAULT_VOLTAGE) V."; \
+		else \
+			echo "Error: VOLTAGE not defined and DEFAULT_VOLTAGE is also not set."; \
+			exit 1; \
+		fi; \
+	else \
+		echo "Using the specified voltage of $(VOLTAGE) V."; \
+	fi
 
 check-python:
 ifeq ($(shell which python3),)
@@ -184,7 +208,10 @@ setup: check-python
 	python3 -m pip install mpy-cross
 	python3 -m pip install mpremote
 
-copy_config_file: $(PREREQUISITES_IF_CONFIG_FILE_TARGET_EXISTS)
+copy_gpio_config_io: $(PREREQUISITES_IF_CONFIG_FILE_TARGET_EXISTS)
+	cp $(IO_CONFIG_FILE_PATTERN)_$(SHUTTLE).py $(IO_CONFIG_FILE_PATTERN).py
+
+copy_config_file: $(PREREQUISITES_IF_CONFIG_FILE_TARGET_EXISTS) check_shuttle
 	cp $(THIS_MAKEFILE_DIR)$(CONFIG_FILES_DIR)/$(PART_OUTPUT_DIR)/$(PART_OUTPUT_FILE) $(CONFIG_FILE_PATTERN).py
 
 store_config_file: check_part check_voltage
@@ -197,7 +224,7 @@ $(CONFIG_FILES_DIR)/$(PART_OUTPUT_DIR):
 
 gen_config_header: $(GPIO_CONFIG_DATA)
 
-$(GPIO_CONFIG_DATA): check_part check_voltage gpio_config_io.py copy_config_file
+$(GPIO_CONFIG_DATA): check_part check_voltage check_shuttle gpio_config_io.py copy_config_file copy_gpio_config_io
 	@echo
 	@echo "Building configuration data."
 	python3 ../gpio_config/gpio_config_builder.py
@@ -211,12 +238,14 @@ hex: $(PATTERN:=.hex)
 %.elf: %.c $(BITSTREAM_HEADER) $(THIS_MAKEFILE_DIR)../riscv_firmware_src/sections.lds $(THIS_MAKEFILE_DIR)../riscv_firmware_src/crt0_vex.S $(GEN_CONFIG_HEADER_PREREQUISITE)
 	@echo
 	@echo "Compiling firmware."
-	$(TOOLCHAIN_PATH)$(TOOLCHAIN_PREFIX)-gcc $(INCLUDES) -O3 -mabi=ilp32 -march=rv32i_zicsr -D__vexriscv__ -Wl,-Bstatic,-T,$(THIS_MAKEFILE_DIR)../riscv_firmware_src/sections.lds,--strip-debug -ffreestanding -nostdlib -o $@ $(SRC_FILES) $<
+	$(TOOLCHAIN_PATH)$(TOOLCHAIN_PREFIX)-gcc $(INCLUDES) -O3 -g -flto -fno-inline -fno-schedule-insns -fno-schedule-insns2 -mabi=ilp32 -march=rv32i_zicsr -finline-functions -funroll-loops -D__vexriscv__ -Wl,-Bstatic,-T,$(THIS_MAKEFILE_DIR)../riscv_firmware_src/sections.lds,--strip-debug -ffreestanding -nostdlib -o $@ $(SRC_FILES) $<
+	# $(TOOLCHAIN_PATH)$(TOOLCHAIN_PREFIX)-gcc $(INCLUDES) -O3 -g -mabi=ilp32 -march=rv32i_zicsr  -D__vexriscv__ -Wl,-Bstatic,-T,$(THIS_MAKEFILE_DIR)../riscv_firmware_src/sections.lds,--strip-debug -ffreestanding -nostdlib -o $@ $(SRC_FILES) $<
 	@echo "$(GREEN)Done compiling firmware.$(RESET_COLOR)"
 
 %.hex: %.elf
 	@echo "Converting $< to $@"
 	$(TOOLCHAIN_PATH)$(TOOLCHAIN_PREFIX)-objcopy -O verilog $< $@
+	# $(TOOLCHAIN_PATH)$(TOOLCHAIN_PREFIX)-objdump -d -S $< > $(PATTERN).S
 	$(SED_CMD) 's/@1000/@0000/g' $@
 	$(STRIP)
 	@echo "$(GREEN)Done converting $< to $@.$(RESET_COLOR)"
