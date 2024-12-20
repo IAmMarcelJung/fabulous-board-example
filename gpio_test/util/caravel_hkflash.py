@@ -6,6 +6,7 @@ import sys, os
 from pyftdi.spi import SpiController, SpiGpioPort
 import binascii
 import asyncio
+from loguru import logger
 from asyncio import Event
 from io import StringIO
 from typing import Callable, Any, Coroutine
@@ -59,8 +60,27 @@ FIRMWARE_WRITE = True
 FIRMWARE_VERIFY = False
 
 GPIO_UART_EN_POS = 8
+GPIO_RX_LED_POS = 10
 GPIO_TX_LED_POS = 11
 
+
+def setup_logger(verbosity: int):
+    # Remove the default logger to avoid duplicate logs
+    logger.remove()
+
+    # Define logger format
+    if verbosity >= 1:
+        log_format = (
+            "[<level>{level:}</level>]: "
+            "<cyan>[{time:DD-MM-YYYY HH:mm:ss]}</cyan> | "
+            "<green>[{name}</green>:<green>{function}</green>:<green>{line}]</green> - "
+            "<level>{message}</level>"
+        )
+    else:
+        log_format = "[<level>{level:}</level>]: " "<level>{message}</level>"
+
+    # Add logger to write logs to stdout
+    logger.add(sys.stdout, format=log_format, level="DEBUG", colorize=True)
 
 class Led:
     """Class definition for the LED connected to the FTDI chip."""
@@ -72,8 +92,8 @@ class Led:
         """
 
         self.gpio = gpio
-        self.gpio
         self.led = False
+        self.gpio_reg = 0b000100000000
 
     async def toggle(self, delay: float):
         """Toggle the led once and wait for the specified delay.
@@ -82,10 +102,23 @@ class Led:
         :type delay: float
         """
         self.led = not self.led
-        output = 0b000100000000 | int(self.led) << GPIO_TX_LED_POS
+        self.set_value(GPIO_TX_LED_POS, self.led)
+        await asyncio.sleep(delay)
+
+    def set_value(self, led_pos: int, value: bool):
+        """Set the LED to the specified value.
+
+        :param led_pos: The bit position of the LED.
+        :type led_pos:
+        :param value: The value to which the LED is set
+        :type value: bool
+        """
+        if not value:
+            self.gpio_reg |= 1 << led_pos
+        else:
+            self.gpio_reg &= ~(1 << led_pos)
         if self.gpio:
-            self.gpio.write(output)
-            await asyncio.sleep(delay)
+            self.gpio.write(self.gpio_reg)
 
     async def toggle_until_stop_event(self, delay: float, stop_event: Event):
         """Toggle the led until the stop event is set.
@@ -124,33 +157,36 @@ class Memory:
         """
         self.slave.write([CARAVEL_PASSTHRU, command_id])
 
-    async def erase(self, stop_event) -> None:
+    async def erase(self, stop_event: asyncio.Event) -> None:
         """Erase the flash memory.
 
         :param stop_event: The stop event to set when erasing is done.
+        :type stop_event: asyncio.Event
         """
-        print("Resetting Flash...")
+        logger.info("Resetting Flash...")
         self.slave.write([CARAVEL_PASSTHRU, CMD_RESET_CHIP])
 
-        print(f"status = 0x{self.get_status():02x}\n")
+        logger.info(f"Status = 0x{self.get_status():02x}")
 
         jedec = self.slave.exchange([CARAVEL_PASSTHRU, CMD_JEDEC_DATA], 3)
-        print(f"JEDEC = {binascii.hexlify(jedec)}")
+        logger.info(f"JEDEC = {binascii.hexlify(jedec)}")
 
         if jedec[0:1] != bytes.fromhex("ef"):
-            print("Winbond flash not found")
+            logger.error("Winbond flash not found")
             stop_event.set()
-            sys.exit()
+            raise MemoryError
+        else:
+            logger.success("JEDEC info correct")
 
-        print("Erasing chip...")
+        logger.info("Erasing chip...")
         self.write_passthrough_command(CMD_WRITE_ENABLE)
         self.write_passthrough_command(CMD_ERASE_CHIP)
 
         while self.is_busy():
             await asyncio.sleep(0.1)
 
-        print("done")
-        print(f"status = {hex(self.get_status())}")
+        logger.success("Done")
+        logger.info(f"Status = {hex(self.get_status())}")
         stop_event.set()
 
     def is_busy(self) -> bool:
@@ -188,9 +224,9 @@ class Memory:
 
         """
         if not write:
-            print("************************************")
-            print("Verifying...")
-            print("************************************")
+            logger.info("************************************")
+            logger.info("Verifying...")
+            logger.info("************************************")
 
         addr = 0
         total_bytes = 0
@@ -201,7 +237,7 @@ class Memory:
             for line in f:
                 if line.startswith("@"):
                     addr = int(line[1:], 16)
-                    print(f"setting address to {hex(addr)}")
+                    logger.info(f"setting address to {hex(addr)}")
                 else:
                     values = bytearray.fromhex(line.rstrip())
                     buf.extend(values)
@@ -215,7 +251,7 @@ class Memory:
                         buf = buf[256:]
                         addr += 256
                         nbytes -= 256
-                        print("*** over 256 hit")
+                        logger.warning("*** over 256 hit")
                     else:
                         buf = bytearray()
                         addr += 256
@@ -225,7 +261,7 @@ class Memory:
                 total_bytes += nbytes
                 await self.__transfer_sequence(write, nbytes, buf, addr)
 
-        print(f"\ntotal_bytes = {total_bytes}")
+        logger.info(f"total_bytes = {total_bytes}")
         stop_event.set()
 
     async def __compare_buffers(
@@ -247,9 +283,9 @@ class Memory:
         while self.is_busy():
             await asyncio.sleep(0.1)
         if buf == buf2:
-            print(f"addr {hex(addr)}: read compare successful")
+            logger.info(f"addr {hex(addr)}: read compare successful")
         else:
-            print(f"addr {hex(addr)}: *** read compare FAILED ***")
+            logger.error(f"addr {hex(addr)}: *** read compare FAILED ***")
             print(binascii.hexlify(buf))
             print("<----->")
             print(binascii.hexlify(buf2))
@@ -265,7 +301,7 @@ class Memory:
         while self.is_busy():
             await asyncio.sleep(0.1)
 
-        print(f"addr {hex(addr)}: flash page write successful")
+        logger.info(f"addr {hex(addr)}: flash page write successful")
 
     async def __transfer_sequence(
         self, write: bool, nbytes: int, buf: bytearray, addr: int
@@ -324,27 +360,26 @@ class MyFtdi(Ftdi):
         """Reset the CPU over an SPI command."""
         self.slave.write([CARAVEL_REG_WRITE, 0x0B, 0x00])
 
-    def print_manufacturer_and_product_id(self) -> None:
+    def print_manufacturer_product_and_project_id(self) -> None:
         """Print the manufacturer and product ID."""
-        print(" ")
-        print("Caravel data:")
+        logger.info("Caravel data:")
         self.mfg_id = self.slave.exchange([CARAVEL_STREAM_READ, 0x01], 2)
         mfg_id_int = int.from_bytes(self.mfg_id, byteorder="big")
-        print(f"   Manufacturer ID = {mfg_id_int:04x}")
+        logger.info(f"   Manufacturer ID = 0x{mfg_id_int:04x}")
 
         product = self.slave.exchange([CARAVEL_REG_READ, 0x03], 1)
         product_int = int.from_bytes(product, byteorder="big")
-        print(f"   Product ID      = {product_int:02x}\n")
+        logger.info(f"   Product ID      = 0x{product_int:02x}")
 
     def check_manufacturer_id(self) -> None:
         """Check the manufacturer ID of the chip."""
         mfg_int = int.from_bytes(self.mfg_id, byteorder="big")
         if mfg_int != 0x0456:
-            print(
+            logger.error(
                 f"Manufacturer ID does not does not match! Expected 0x0456, got {hex(mfg_int)}."
             )
-            print(
-                "You might want to power cycle the board and start flashing before the firmware configures the GPIOs.\n"
+            logger.warning(
+                "You might want to power cycle the board and start flashing before the firmware configures the GPIOs."
             )
             exit(2)
 
@@ -364,14 +399,14 @@ class MyFtdi(Ftdi):
             if name == "(Single RS232-HS)":
                 ftdi_devices.append(url)
         if len(ftdi_devices) == 0:
-            print("Error: No matching FTDI devices on USB bus!")
+            logger.error("Error: No matching FTDI devices on USB bus!")
             sys.exit(1)
         elif len(ftdi_devices) > 1:
-            print("Error: Too many matching FTDI devices on USB bus!")
+            logger.error("Error: Too many matching FTDI devices on USB bus!")
             self.show_devices()
             sys.exit(1)
         else:
-            print("Success: Found one matching FTDI device at " + ftdi_devices[0])
+            logger.success("Found one matching FTDI device at " + ftdi_devices[0])
         return ftdi_devices[0]
 
     def __assign_led_to_gpio(self) -> Led:
@@ -394,13 +429,13 @@ def get_file_path_from_args(args: list[str]) -> str:
     :rtype: str
     """
     if len(args) < 2:
-        print(f"Usage: {os.path.basename(__file__)} <file>")
+        logger.warning(f"Usage: {os.path.basename(__file__)} <file>")
         sys.exit()
 
     file_path = args[1]
 
     if not os.path.isfile(file_path):
-        print("File not found.")
+        logger.error("File not found.")
         sys.exit()
     return file_path
 
@@ -437,9 +472,18 @@ async def main() -> None:
     file_path = get_file_path_from_args(sys.argv)
 
     ftdi = MyFtdi()
+    ftdi.led.set_value(GPIO_RX_LED_POS, False)
     ftdi.enable_cpu_reset()
-    ftdi.print_manufacturer_and_product_id()
-    await toggle_led_during_ftdi_action(ftdi.memory.erase, ftdi, 0.5)
+    ftdi.print_manufacturer_product_and_project_id()
+    try:
+        await toggle_led_during_ftdi_action(ftdi.memory.erase, ftdi, 0.5)
+    except MemoryError:
+        logger.warning(
+                "Please power cycle the board and try flashing again"
+                + " immediately! Also check that the UART_EN jumper is not set.",
+        )
+        ftdi.led.set_value(GPIO_TX_LED_POS, False)
+        exit(1)
 
     await toggle_led_during_ftdi_action(
         ftdi.memory.firmware_action, ftdi, 0.025, file_path, FIRMWARE_WRITE
@@ -452,10 +496,12 @@ async def main() -> None:
     # This will finish almost instantly, no need to toggle the LED.
     stop_event = asyncio.Event()
     await ftdi.memory.firmware_action(file_path, FIRMWARE_VERIFY, stop_event)
+    ftdi.led.set_value(GPIO_TX_LED_POS, False)
 
     ftdi.disable_cpu_reset()
     ftdi.spi.close(True)
 
 
 if __name__ == "__main__":
+    setup_logger(0)
     asyncio.run(main())

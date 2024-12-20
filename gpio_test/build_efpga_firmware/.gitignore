@@ -1,0 +1,10 @@
+__pycache__
+*.hex
+*.orig
+*.lst
+custom_firmware.hex
+gpio_config_data.c
+gpio_config_data.py
+gpio_config_def.py
+gpio_config_io.py
+*.ccls

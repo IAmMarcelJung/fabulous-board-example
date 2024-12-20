@@ -1,205 +1,143 @@
 #!/bin/env python3
 #
 # gpio_reg_simulator.py ---  Simulate GPIO configuration based on data independent
-# and dependent hold violations for MPW-2
+# and dependent hold violations for MPW-2 to MPW-5
 #
 # Input:   Hold violations between each GPIO and input pattern for configuration
-# Output:  Results after configuration for each clock cycle
+# Output:  Actual GPIO data in the GPIO register
 #
 
-import os,sys
+import os, sys
+
 sys.path.append(os.getcwd())
 
-from bitstring import Bits, BitArray, BitStream
-from enum import Enum
+from bitstring import BitArray
+from typing import List
 from gpio_config_data import config_data_h, config_data_l
-from gpio_config_def import H_NONE, H_DEPENDENT, H_INDEPENDENT, H_SPECIAL, gpio_h, gpio_l
+from gpio_config_def import (
+    H_DEPENDENT,
+    H_INDEPENDENT,
+    gpio_h,
+    gpio_l,
+)
 
 NUM_IO = 19
+MAX_IO_NUM = 37
+NUM_CONFIG_BITS = 13
 
 
-def print_header(gpio):
-    print("    :", end=" ")
-    for z in gpio:
-        if z[1] == H_INDEPENDENT:
-            print("I", end="")
-        elif z[1] == H_DEPENDENT:
-            print("D", end="")
-        elif z[1] == H_SPECIAL:
-            print("S", end="")
-        else:
-            print("_", end="")
-        print("___" + z[0] + "___", end=" ")
+def print_regs(chain, is_high_chain):
     print()
+    for i, reg in enumerate(chain):
+        if is_high_chain:
+            reg_num = MAX_IO_NUM - i
+        else:
+            reg_num = i
+
+        print(f"{reg_num:02d}: {reg.bin}")
 
 
 # gpio shift registers
-gpio_h_reg = [
-    BitArray(length=13),
-    BitArray(length=13),
-    BitArray(length=13),
-    BitArray(length=13),
-    BitArray(length=13),
-    BitArray(length=13),
-    BitArray(length=13),
-    BitArray(length=13),
-    BitArray(length=13),
-    BitArray(length=13),
-    BitArray(length=13),
-    BitArray(length=13),
-    BitArray(length=13),
-    BitArray(length=13),
-    BitArray(length=13),
-    BitArray(length=13),
-    BitArray(length=13),
-    BitArray(length=13),
-    BitArray(length=13),
+gpio_chain_l = [
+    BitArray(length=NUM_CONFIG_BITS),
+    BitArray(length=NUM_CONFIG_BITS),
+    BitArray(length=NUM_CONFIG_BITS),
+    BitArray(length=NUM_CONFIG_BITS),
+    BitArray(length=NUM_CONFIG_BITS),
+    BitArray(length=NUM_CONFIG_BITS),
+    BitArray(length=NUM_CONFIG_BITS),
+    BitArray(length=NUM_CONFIG_BITS),
+    BitArray(length=NUM_CONFIG_BITS),
+    BitArray(length=NUM_CONFIG_BITS),
+    BitArray(length=NUM_CONFIG_BITS),
+    BitArray(length=NUM_CONFIG_BITS),
+    BitArray(length=NUM_CONFIG_BITS),
+    BitArray(length=NUM_CONFIG_BITS),
+    BitArray(length=NUM_CONFIG_BITS),
+    BitArray(length=NUM_CONFIG_BITS),
+    BitArray(length=NUM_CONFIG_BITS),
+    BitArray(length=NUM_CONFIG_BITS),
+    BitArray(length=NUM_CONFIG_BITS),
 ]
 
-del gpio_h_reg[NUM_IO:]
+del gpio_chain_l[NUM_IO:]
 
-gpio_l_reg = [
-    BitArray(length=13),
-    BitArray(length=13),
-    BitArray(length=13),
-    BitArray(length=13),
-    BitArray(length=13),
-    BitArray(length=13),
-    BitArray(length=13),
-    BitArray(length=13),
-    BitArray(length=13),
-    BitArray(length=13),
-    BitArray(length=13),
-    BitArray(length=13),
-    BitArray(length=13),
-    BitArray(length=13),
-    BitArray(length=13),
-    BitArray(length=13),
-    BitArray(length=13),
-    BitArray(length=13),
-    BitArray(length=13),
+gpio_chain_l = [
+    BitArray(length=NUM_CONFIG_BITS),
+    BitArray(length=NUM_CONFIG_BITS),
+    BitArray(length=NUM_CONFIG_BITS),
+    BitArray(length=NUM_CONFIG_BITS),
+    BitArray(length=NUM_CONFIG_BITS),
+    BitArray(length=NUM_CONFIG_BITS),
+    BitArray(length=NUM_CONFIG_BITS),
+    BitArray(length=NUM_CONFIG_BITS),
+    BitArray(length=NUM_CONFIG_BITS),
+    BitArray(length=NUM_CONFIG_BITS),
+    BitArray(length=NUM_CONFIG_BITS),
+    BitArray(length=NUM_CONFIG_BITS),
+    BitArray(length=NUM_CONFIG_BITS),
+    BitArray(length=NUM_CONFIG_BITS),
+    BitArray(length=NUM_CONFIG_BITS),
+    BitArray(length=NUM_CONFIG_BITS),
+    BitArray(length=NUM_CONFIG_BITS),
+    BitArray(length=NUM_CONFIG_BITS),
+    BitArray(length=NUM_CONFIG_BITS),
 ]
 
-del gpio_l_reg[NUM_IO:]
+del gpio_chain_l[NUM_IO:]
 
 # ------------------------------------------
 
-print_header(gpio_h)
 
-print("   0:", end=" ")
-for x in gpio_h_reg:
-    print(x.bin, end=" ")
-print()
+def simulate_chain_htvs(
+    gpio_chain: List[BitArray], config_data, gpio_violations, is_high_chain
+):
+    """Simulate the hold time violations for the given chain
 
-clock = 1
-n_clocks = len(config_data_h)
-# iterate through each IO in reverse order
-# for k in reversed(range(10)):
-# for k in reversed(range(len(config_data_h))):
-for k in range(len(config_data_h)):
-# for k in range(10):
+    :param gpio_chain: The gpio register
+    """
 
-    # shift based on the number of bits in the config stream for that register
-    # from msb to lsb
-    # for j in reversed(range(len(config_data_h[k]))):
-    # while clock <= n_clocks:
-    print(" {:3d}:".format(clock), end=" ")
-    clock += 1
-    current_shifted_out = previous_shifted_out = previous_reg_last_bit = 0
+    for bit in config_data:
+        # shift based on the number of bits in the config stream for that register
+        # from MSB to LSB
+        current_shifted_out = previous_shifted_out = previous_reg_last_bit = False
 
-    # iterate through each gpio
-    for i in range(len(gpio_h_reg)):
+        # iterate through each gpio
+        for current_gpio_reg_num, current_gpio_reg in enumerate(gpio_chain):
 
-        # store bit to be shifted off
-        current_shifted_out = gpio_h_reg[i][12]
+            # store bit to be shifted off
+            current_shifted_out = current_gpio_reg[-1]
 
-        # right shift all bits in the register
-        gpio_h_reg[i].ror(1)
+            # right shift all bits in the register
+            current_gpio_reg.ror(1)
 
-        if gpio_h[i][1] == H_INDEPENDENT:
-            # shift in bit from previous gpio register, skipping the first bit
-            gpio_h_reg[i][1] = previous_shifted_out
-            gpio_h_reg[i][0] = previous_reg_last_bit
+            if gpio_violations[current_gpio_reg_num] == H_INDEPENDENT:
+                # shift in bit from previous gpio register, skipping the first bit
+                current_gpio_reg[1] = previous_shifted_out
+                current_gpio_reg[0] = previous_reg_last_bit
 
-        elif gpio_h[i][1] == H_DEPENDENT and previous_reg_last_bit == 0:
-                gpio_h_reg[i][0] = 0
+            elif (
+                gpio_violations[current_gpio_reg_num] == H_DEPENDENT
+                and previous_reg_last_bit == False
+            ):
+                current_gpio_reg[0] = False
 
-        else:
-            # shift in bit from previous gpio register
-            gpio_h_reg[i][0] = previous_shifted_out
+            # effectively H_NONE
+            else:
+                # shift in bit from previous gpio register
+                current_gpio_reg[0] = bool(previous_shifted_out)
 
-        previous_shifted_out = current_shifted_out
-        previous_reg_last_bit = gpio_h_reg[i][12]
+            previous_shifted_out = current_shifted_out
+            previous_reg_last_bit = current_gpio_reg[-1]
 
+        # shift in next bit from configuration stream
+        gpio_chain[0][0] = bool(int(bit))
 
-    # shift in next bit from configuration stream
-    # gpio_h_reg[0][0] = config_data_h[k][j]
-    gpio_h_reg[0][0] = int(config_data_h[k])
-
-    for x in gpio_h_reg:
-        print(x.bin, end=" ")
-    print()
-
-print_header(gpio_h)
-
-print()
-
-# ------------------------------------------
-
-print_header(gpio_l)
-
-print("   0:", end=" ")
-for x in gpio_l_reg:
-    print(x.bin, end=" ")
-print()
-
-clock = 1
-n_clocks = len(config_data_l)
-# iterate through each IO in reverse order
-# for k in reversed(range(10)):
-# for k in reversed(range(len(config_data_h))):
-for k in range(len(config_data_l)):
-# for k in range(10):
-
-    # shift based on the number of bits in the config stream for that register
-    # from msb to lsb
-    # for j in reversed(range(len(config_data_h[k]))):
-    # while clock <= n_clocks:
-    print(" {:3d}:".format(clock), end=" ")
-    clock += 1
-    current_shifted_out = previous_shifted_out = previous_reg_last_bit = 0
-
-    # iterate through each gpio
-    for i in range(len(gpio_l_reg)):
-
-        # store bit to be shifted off
-        current_shifted_out = gpio_l_reg[i][12]
-
-        # right shift all bits in the register
-        gpio_l_reg[i].ror(1)
-
-        if gpio_l[i][1] == H_INDEPENDENT:
-            # shift in bit from previous gpio register, skipping the first bit
-            gpio_l_reg[i][1] = previous_shifted_out
-            gpio_l_reg[i][0] = previous_reg_last_bit
-
-        elif gpio_l[i][1] == H_DEPENDENT and previous_reg_last_bit == 0:
-                gpio_l_reg[i][0] = 0
-
-        else:
-            # shift in bit from previous gpio register
-            gpio_l_reg[i][0] = previous_shifted_out
-
-        previous_shifted_out = current_shifted_out
-        previous_reg_last_bit = gpio_l_reg[i][12]
+    print_regs(gpio_chain, is_high_chain)
 
 
-    # shift in next bit from configuration stream
-    # gpio_h_reg[0][0] = config_data_h[k][j]
-    gpio_l_reg[0][0] = int(config_data_l[k])
-
-    for x in gpio_l_reg:
-        print(x.bin, end=" ")
-    print()
-
-print_header(gpio_l)
+if __name__ == "__main__":
+    violations_l = [violation[1] for violation in gpio_l]
+    violations_h = [violation[1] for violation in gpio_h]
+    simulate_chain_htvs(gpio_chain_l, config_data_h, violations_h, True)
+    simulate_chain_htvs(gpio_chain_l, config_data_l, violations_l, False)

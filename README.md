@@ -2,7 +2,7 @@
 
 ## Summary
 
-This repository documents how to upload a bitstream to a
+This repository serves multiple purposes: It includes python files to upload a bitstream to a
 [FABulous](https://github.com/FPGA-Research-Manchester/FABulous) eFPGA[^1]
 fabricated in the [MPW-2](https://platform.efabless.com/shuttles/MPW-2) run of
 the Open MPW Shuttle Program
@@ -11,9 +11,11 @@ HAT](https://github.com/efabless/caravel_board/tree/main/hardware/nucleo/caravel
 This HAT can either operate in standalone mode or be
 mounted onto a [Nucleo
 board](https://www.st.com/en/evaluation-tools/nucleo-f746zg.html#overview)[^3].
+Another purpose is the flashing of the caravel SoC firmware so that a bitstream
+can be uploaded to the eFPGA and the outputs are available.
 
-The process for using the Nucleo board is using bash scripts and MicroPython and
-is based on this
+The process for using the Nucleo board is using bash scripts and MicroPython
+It is based on this
 [forked base repository](https://github.com/gatecat/fabulous-mpw2-bringup)
 (commit `34bcb9d`).
 
@@ -23,15 +25,15 @@ used, but with a bit of cleanup in the directory structure and adjustments to
 the Makefiles and the flash script. It is mandatory to check a chip for the
 failure pattern caused by the hold time violations in the GPIO configuration
 module prior to uploading a bitstream. There are currently seven pretested chips
-available at the University of Heidelberg. Eight more chips are also labled but
+available at the University of Heidelberg. Eight more chips are also labeled, but
 since they were not factory soldered they still have some issues. Each pretested
 chip is labeled with its part number, starting at 0. If you test another chip in
 the future, please also label it.
 
 ## Project structure
 
-- `caravel`: Files for using the Nucleo board to upload a bitstream.
-- `fabric`: Files of the hardware fabric on the MPW-2 chip.
+- `bitstream_upload_python`: Files for using the Nucleo board to upload a bitstream.
+- `mpw2_fabric`: Files of the hardware fabric on the MPW-2 chip.
 - `gpio_test`: Directories for checking the GPIO configuration failure pattern
   and for uploading the bitstream in standalone mode. Also contains a directory
   for tests of the modules used in the firmware.
@@ -39,19 +41,20 @@ the future, please also label it.
   bitstream (or a link to it) should be placed here.
 - `sim`: Files for simulation of the whole fabric including uploading the
   bitstream of the user design.
-- `user_design`: Example user designs.
+- `user_design`: Example user designs. Mostly taken from the base repo and also
+untested.
 
 ## Uploading a bitstream
 
 There are two options for uploading a bitstream. Either the Nucleo board
 used for the GPIO configuration testing or the Caravel board in standalone mode
 can be used. The process for using the Nucleo board for a checked chip is
-described in [caravel](./caravel) and in [gpio_test](./gpio_test) for the
-standalone mode.
+described in [bitstream_upload_python](./bitstream_upload_python) and in
+[gpio_test](./gpio_test) for the standalone mode.
 
 ## IO Mapping
 
-In `fabric/verilog/eFPGA_v3_top_sky130.v` the mappings of the HAT
+In `mpw2_fabric/verilog/eFPGA_v3_top_sky130.v` the mappings of the HAT
 IO-Pins to the internal pins can be found. However, the pins are shifted by an
 offset of 7
 because the first 7 pins are used by Caravel.
@@ -72,13 +75,17 @@ so on. A few IOs are also already assigned inside the fabric as follows:
 ### Clock selection
 
 By setting `IO_8` and `IO_9`, the clock used for the eFPGA can be selected.
-The selection is defined in `fabric/verilog/eFPGA_v3_top_sky130.v` as follows:
+The selection is defined in `mpw2_fabric/verilog/eFPGA_v3_top_sky130.v` as follows:
 
 | IO_8 | IO_9 | clock source        |
 |------|------|---------------------|
 |  0   |  X   | external (IO_7)     |
 |  1   |  0   | wishbone (10 MHz)   |
 |  1   |  1   | user                |
+
+> Note
+> The clock cannot be selected for MPW-5 eFPGAs, since the `io_oeb` bits of the
+> fabric pins a not set correctly.
 
 ### User design mapping
 Pins `IO[14]`/`io_in/out[7]` and higher can be used in the user design, so the
