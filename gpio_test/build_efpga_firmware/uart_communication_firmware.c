@@ -1,13 +1,9 @@
 #include "../gpio_config/gpio_config_io.h"
-#include <bitstream.h>
 #include <defs.h>
 #include <global_defs.h>
 #include <helpers.h>
 #include <register_actions.h>
 #include <stub.h>
-#include <upload_bitstream.h>
-
-#define PREAMBLE_SIZE 128u
 
 // --------------------------------------------------------
 // Firmware routines
@@ -90,9 +86,6 @@ int main() {
 
     while (1) {
         print("Please enter a character:\n");
-        // print_gpio_values_header();
-        // print_gpio_values();
-        // print("\033[A");
         char test = UART_readChar();
         print("The character was: ");
         uart_putchar(test);
