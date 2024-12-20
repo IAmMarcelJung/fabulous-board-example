@@ -83,7 +83,7 @@ The selection is defined in `mpw2_fabric/verilog/eFPGA_v3_top_sky130.v` as follo
 |  1   |  0   | wishbone (10 MHz)   |
 |  1   |  1   | user                |
 
-> Note
+> [!Note]
 > The clock cannot be selected for MPW-5 eFPGAs, since the `io_oeb` bits of the
 > fabric pins a not set correctly.
 
