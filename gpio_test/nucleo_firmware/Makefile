@@ -88,6 +88,7 @@ compile: $(MPY_FILES)
 
 $(PYTHON_SRC)%.mpy: $(PYTHON_SRC)%.py
 	mpy-cross $<
+	$(COPY_CMD) $@ $(FLASH)
 
 # runs script from the local filesystem
 reset: check_device
@@ -154,8 +155,6 @@ F413ZH:
 
 # copies scripts to nucleo
 copy2 F746ZG-copy: compile check_device hex
-	$(COPY_CMD) $(filter-out $(PYTHON_SRC)main.mpy, $(wildcard $(PYTHON_SRC)*.mpy)) $(FLASH)
-	$(COPY_CMD) $(PYTHON_SRC)/main.py $(FLASH)
 	$(COPY_CMD) $(THIS_MAKEFILE_DIR)config_io_o.hex $(FLASH)
 	sync
 	$(LS_CMD) $(FLASH)
@@ -163,8 +162,6 @@ copy2 F746ZG-copy: compile check_device hex
 	mpremote df
 
 copy3 F413ZH-copy: compile check_device hex
-	$(COPY_CMD) $(filter-out $(PYTHON_SRC)main.mpy, $(wildcard $(PYTHON_SRC)*.mpy)) $(FLASH)
-	$(COPY_CMD) $(PYTHON_SRC)main.py $(FLASH)
 	$(COPY_CMD) $(THIS_MAKEFILE_DIR)config_io_o.hex $(FLASH)
 	sync
 	$(LS_CMD)
