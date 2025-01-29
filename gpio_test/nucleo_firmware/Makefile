@@ -41,6 +41,8 @@ PATTERN ?= config_io_o
 
 CONFIG_FILES_DIR := $(THIS_MAKEFILE_DIR)gpio_config_files
 
+.PHONY: clean hex copy repl run copy_config_file
+
 # Set VOLTAGE_STR based on whether VOLTAGE or DEFAULT_VOLTAGE is defined
 ifndef VOLTAGE
   ifdef DEFAULT_VOLTAGE
@@ -171,7 +173,7 @@ copy3 F413ZH-copy: compile check_device hex
 
 check_device:
 ifndef DEV
-	$(error "Nucleo device file not found")
+	$(error "Nucleo device file not found. Probably the board is not connected?")
 endif
 
 check_part:
@@ -236,14 +238,12 @@ hex: $(PATTERN:=.hex)
 %.elf: %.c $(BITSTREAM_HEADER) $(THIS_MAKEFILE_DIR)../riscv_firmware_src/sections.lds $(THIS_MAKEFILE_DIR)../riscv_firmware_src/crt0_vex.S $(GEN_CONFIG_HEADER_PREREQUISITE)
 	@echo
 	@echo "Compiling firmware."
-	$(TOOLCHAIN_PATH)$(TOOLCHAIN_PREFIX)-gcc $(INCLUDES) -O3 -g -flto -fno-inline -fno-schedule-insns -fno-schedule-insns2 -mabi=ilp32 -march=rv32i_zicsr -finline-functions -funroll-loops -D__vexriscv__ -Wl,-Bstatic,-T,$(THIS_MAKEFILE_DIR)../riscv_firmware_src/sections.lds,--strip-debug -ffreestanding -nostdlib -o $@ $(SRC_FILES) $<
-	# $(TOOLCHAIN_PATH)$(TOOLCHAIN_PREFIX)-gcc $(INCLUDES) -O3 -g -mabi=ilp32 -march=rv32i_zicsr  -D__vexriscv__ -Wl,-Bstatic,-T,$(THIS_MAKEFILE_DIR)../riscv_firmware_src/sections.lds,--strip-debug -ffreestanding -nostdlib -o $@ $(SRC_FILES) $<
+	$(TOOLCHAIN_PATH)$(TOOLCHAIN_PREFIX)-gcc $(INCLUDES) -O3 -g -mabi=ilp32 -march=rv32i_zicsr  -D__vexriscv__ -Wl,-Bstatic,-T,$(THIS_MAKEFILE_DIR)../riscv_firmware_src/sections.lds,--strip-debug -ffreestanding -nostdlib -o $@ $(SRC_FILES) $<
 	@echo "$(GREEN)Done compiling firmware.$(RESET_COLOR)"
 
 %.hex: %.elf
 	@echo "Converting $< to $@"
 	$(TOOLCHAIN_PATH)$(TOOLCHAIN_PREFIX)-objcopy -O verilog $< $@
-	# $(TOOLCHAIN_PATH)$(TOOLCHAIN_PREFIX)-objdump -d -S $< > $(PATTERN).S
 	$(SED_CMD) 's/@1000/@0000/g' $@
 	$(STRIP)
 	@echo "$(GREEN)Done converting $< to $@.$(RESET_COLOR)"
@@ -257,4 +257,3 @@ run_and_store_config: $(CONFIG_FILE_TARGET)
 clean::
 	rm -f *.elf $(PYTHON_SRC)*.mpy *.orig config_io_o.hex
 
-.PHONY: clean hex copy repl run copy_config_file
