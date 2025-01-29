@@ -1,6 +1,7 @@
 #include "../gpio_config/gpio_config_io.h"
 #include <defs.h>
 #include <global_defs.h>
+#include <gpio_config_data.h>
 #include <helpers.h>
 #include <register_actions.h>
 #include <stub.h>
@@ -80,7 +81,7 @@ int main() {
 
     blink(3, 2500000);
     reg_gpio_out = 1;
-    gpio_config_io();
+    gpio_config_io(config_stream);
     blink(3, 2500000);
     reg_gpio_out = 0;
 
