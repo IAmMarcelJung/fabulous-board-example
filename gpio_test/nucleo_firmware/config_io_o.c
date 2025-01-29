@@ -1,6 +1,7 @@
 #include "../gpio_config/gpio_config_io.h"
 #include "../riscv_firmware_src/defs.h"
 #include "src/send_packet.h"
+#include <gpio_config_data_sample.h>
 
 void set_registers() {
 
@@ -45,7 +46,7 @@ void set_registers() {
     reg_mprj_io_37 = GPIO_MODE_MGMT_STD_OUTPUT;
 }
 
-void main() {
+int main() {
     int i, j, high_chain_io;
     int num_pulses = 4;
     reg_gpio_mode1 = 1;
@@ -58,7 +59,7 @@ void main() {
     set_registers();
     reg_mprj_datah = 0;
     reg_mprj_datal = 0;
-    gpio_config_io();
+    gpio_config_io(config_stream);
 
     reg_gpio_out = 1; // OFF
     int flag = 0;

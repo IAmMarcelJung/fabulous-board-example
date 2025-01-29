@@ -1,7 +1,6 @@
 #include "gpio_config_io.h"
 #include "../riscv_firmware_src/defs.h"
 #include <csr.h>
-#include <gpio_config_data.h>
 
 void delay(const int clock_cycles) {
 
@@ -44,10 +43,10 @@ void clear_registers() {
     load();
 }
 
-void gpio_config_io() {
-    int n_bits = config_stream[0];
+void gpio_config_io(char const *const config_stream) {
+    char n_bits = config_stream[0];
     // start at  offset 1, first value is n_bits
-    for (int i = 1u; i < n_bits + 1; i++) {
+    for (char i = 1u; i < n_bits + 1; i++) {
         reg_mprj_xfer = config_stream[i];
         delay(WAIT);
         reg_mprj_xfer = config_stream[i] + 0x10;

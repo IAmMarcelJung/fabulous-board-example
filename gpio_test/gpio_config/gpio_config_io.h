@@ -11,6 +11,6 @@ void load();
 
 void clear_registers();
 
-void gpio_config_io();
+void gpio_config_io(char const *const config_stream);
 
 #endif /* GPIO_CONFIG_IO_H */
